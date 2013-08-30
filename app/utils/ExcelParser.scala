@@ -9,7 +9,7 @@ import java.io.File
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Row
-case class Order(name: String, address: Address) extends WithAddress
+case class Order(name: String, address: Address, raw: String) extends WithAddress
 object Order {
   implicit val format = Json.format[Order]
 }
@@ -45,9 +45,10 @@ object ExcelParser {
 }
 class RowParser(adressIndex: Int, nameIndex: Int){
   def parse(row: Row) = {
-    val address = OurGeoDecoder.decode(row.getCell(adressIndex).getStringCellValue)
+    val raw = row.getCell(adressIndex).getStringCellValue
+    val address = OurGeoDecoder.decode(raw)
     val name = row.getCell(nameIndex).getStringCellValue
-    Order(name, address)
+    Order(name, address, raw)
   }
 }
 
