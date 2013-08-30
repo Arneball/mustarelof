@@ -1,5 +1,5 @@
 package controllers
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import play.api._
 import play.api.mvc._
 import java.io.ByteArrayInputStream
@@ -17,14 +17,20 @@ object Application extends Controller {
   }
   
   val post = Action(parse.multipartFormData){ implicit r=>
-    val le_file = r.body.file("file").get
-    val myaddress = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
-    Logger.debug(s"Files ${r.body.file("file")}")
-    val orders = ExcelParser.parse(new FileInputStream(le_file.ref.file))
-    val ordersJson = JsArr(orders.map{_.toJson})
-    val travelorder = OurGeoDecoder.travelling_salesmen(myaddress, orders.toSet)
-    Ok{
-      JsObj("rådata excel" -> ordersJson, "min location" -> myaddress.toJson, "travelorder" -> JsArr(travelorder.map{_.toJson}:_*))
+    Async{
+      scala.concurrent.future{
+        val le_file = r.body.file("file").get
+        val myaddress = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
+        val myadressjson = myaddress.toJson
+        Logger.debug(s"Files ${r.body.file("file")}")
+        val orders = ExcelParser.parse(new FileInputStream(le_file.ref.file))
+        val ordersJson = JsArr(orders.map{_.toJson})
+        val travelorder = OurGeoDecoder.travelling_salesmen(myaddress, orders.toSet)
+        val travelorderjson = JsArr(travelorder.map{_.toJson}:_*)
+        Ok{
+          JsObj("rådata excel" -> ordersJson, "min location" -> myadressjson , "travelorder" -> travelorderjson)
+        }
+      }
     }
   }
 }
