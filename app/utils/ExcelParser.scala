@@ -4,12 +4,12 @@ import play.api.libs.json.Json
 import scala.util.Try
 import play.api.Logger
 import scala.collection.JavaConversions._
-import java.io.FileInputStream
-import java.io.File
-import org.apache.poi.ss.usermodel.WorkbookFactory
-import org.apache.poi.ss.usermodel.Cell
-import org.apache.poi.ss.usermodel.Row
-case class Order(name: String, address: Address, raw: String) extends WithAddress
+import java.io.{FileInputStream, File}
+import org.apache.poi.ss.usermodel.{WorkbookFactory, Cell, Row}
+
+case class Order(name: String, address_string: String, location: LongLat, raw: String) extends Address with Location{
+  def description = name
+}
 object Order {
   implicit val format = Json.format[Order]
 }
@@ -48,7 +48,7 @@ class RowParser(adressIndex: Int, nameIndex: Int){
     val raw = row.getCell(adressIndex).getStringCellValue
     val address = OurGeoDecoder.decode(raw)
     val name = row.getCell(nameIndex).getStringCellValue
-    Order(name, address, raw)
+    Order(name=name, address_string=address.address_string, location=address.location, raw=raw)
   }
 }
 
