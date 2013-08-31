@@ -12,39 +12,51 @@ import scala.io.Source
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Writes
 import play.api.libs.json.JsObject
+import scala.concurrent.Future
+import play.api.libs.Files.TemporaryFile
+import java.io.File
 object Application extends Controller {
   
   def index = Action {
     Ok(views.html.form())
   }
-  
-  val post = Action(parse.multipartFormData){ implicit r=>
-    Async{
-      scala.concurrent.future{
-        val le_file = r.body.file("file").get
-        val myaddress = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
-        val myadressjson = myaddress.toJson
-        Logger.debug(s"Files ${r.body.file("file")}")
-        val orders = ExcelParser.parse(new FileInputStream(le_file.ref.file))
-        val ordersJson = JsArr(orders.map{_.toJson})
-        val travelorder = OurGeoDecoder.travelling_salesmen(myaddress, orders.toSet)
-        val travelorderjson = JsArr(travelorder.map{_.toJson}:_*)
-        val pimped = OurGeoDecoder.pimped_with_distance(travelorder)
-        implicit object W extends Writes[(AddressWithLocation, Option[Double])]{
-          def advrites(a: AddressWithLocation) = implicitly[Writes[AddressWithLocation]].writes(a).asInstanceOf[JsObject]
-          def writes(t: (AddressWithLocation, Option[Double])) = t match {
-            case (a, Some(b)) => advrites(a) + ("distanceToNext" -> b.toJson)
-            case (a, _)       => advrites(a)
-          }
-        }
-        Ok{
-          JsObj(
-            "rådata excel" -> ordersJson, 
-            "min location" -> myadressjson, 
-            "travelorder" -> travelorderjson,
-            "pimped with distance" -> pimped.toJson)
+  private def AsyncAttachmentAction(f: Map[String, File] => Request[MultipartFormData[TemporaryFile]] => Result) = {
+    Action(parse.multipartFormData){ r => 
+      Async{
+        scala.concurrent.future{
+          val files = r.body.files.map{ fileref => fileref.key -> fileref.ref.file }.toMap
+          println(s"Files $files")
+          f(files)(r)
         }
       }
+    }
+  }
+  
+  val post = AsyncAttachmentAction{ files => implicit r =>
+    val myaddress = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
+    Logger.debug(s"Files ${r.body.file("file")}")
+    
+    val orders = ExcelParser.parse(new FileInputStream(files("file")))
+    val travelorder = OurGeoDecoder.travelling_salesmen(myaddress, orders.toSet)
+    
+    type PimpedType = (AddressWithLocation, Option[Double])
+    val pimped: Seq[PimpedType] = OurGeoDecoder.pimped_with_distance(travelorder)
+    
+    /** A Json serializer for Tuple2[AddressWithLocation, Option[Double]] */
+    implicit object W extends Writes[PimpedType]{
+      def advrites(a: AddressWithLocation) = implicitly[Writes[AddressWithLocation]].writes(a).asInstanceOf[JsObject]
+      def writes(t: (AddressWithLocation, Option[Double])) = t match {
+        case (a, Some(b)) => advrites(a) + ("distanceToNext" -> b.toJson)
+        case (a, _)       => advrites(a)
+      }
+    }
+    
+    Ok{
+      JsObj(
+        "rådata excel" -> (orders: JsArray), // implicitly converts Seq[_<%JsValue] => JsArray
+        "min location" -> myaddress.toJson, 
+        "travelorder" -> (travelorder: JsArray), // implicitly converts Seq[_<%JsValue] => JsArray
+        "pimped with distance" -> pimped.toJson)
     }
   }
 }

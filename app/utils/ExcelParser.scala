@@ -12,6 +12,7 @@ case class Order(name: String, address_string: String, location: LongLat, raw: S
 }
 object Order {
   implicit val format = Json.format[Order]
+  Json.format[Order]
 }
 
 object ExcelParser {

@@ -11,6 +11,9 @@ package object utils {
       "description" -> t.description
     )
   }
+  
+  implicit def jsseqshit[T](s: Seq[T])(implicit writes: Writes[T]) = JsArr(s.map{_.toJson})
+  
   implicit def str2json(str: String): JsString = JsString(str)
   object JsObj {
     def apply(vals: (String, JsValue)*) = JsObject(Seq(vals: _*))
