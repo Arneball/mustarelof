@@ -7,6 +7,7 @@ import scala.collection.JavaConversions._
 import com.google.code.geocoder.model.{LatLng => GoogLatLng}
 import play.api.libs.json._
 import com.google.code.geocoder.model.LatLng
+import scala.collection.concurrent.TrieMap
 object OurGeoDecoder {
   private val geocoder = new Geocoder
   def main(args: Array[String]): Unit = {
@@ -18,11 +19,18 @@ object OurGeoDecoder {
       loc1.distanceTo(loc2)
     }
   }
+  private val cache = new TrieMap[String, AddressWithLocation]
+  
   def decode(possible_gay_adress: String): AddressWithLocation = {
-    val req = new GeocoderRequestBuilder().setAddress(possible_gay_adress).getGeocoderRequest
-    geocoder.geocode(req).getResults.map{ res => 
-      new ConcreteAddress(possible_gay_adress, res.getFormattedAddress, res.getGeometry.getLocation) 
-    }.head
+    cache.get(possible_gay_adress).getOrElse{
+      val req = new GeocoderRequestBuilder().setAddress(possible_gay_adress).getGeocoderRequest
+      val res = geocoder.geocode(req).getResults.map{ res => 
+        new ConcreteAddress(possible_gay_adress, res.getFormattedAddress, res.getGeometry.getLocation) 
+      }
+      val le_res = res.head
+      cache += possible_gay_adress -> le_res
+      le_res
+    }
   }
   
   def pimped_with_distance(myloc: Seq[AddressWithLocation]): Seq[(AddressWithLocation, Option[Double])] = myloc.length match {
