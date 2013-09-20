@@ -33,7 +33,7 @@ object Application extends Controller {
   }
   
   val post = AsyncAttachmentAction{ files => implicit r =>
-    val myaddress = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
+    val myaddress: AddressWithLocation = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
     Logger.debug(s"Files ${r.body.file("file")}")
     
     val orders = ExcelParser.parse(new FileInputStream(files("file")))

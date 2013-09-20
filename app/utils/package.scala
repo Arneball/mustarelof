@@ -16,10 +16,10 @@ package object utils {
   
   implicit def str2json(str: String): JsString = JsString(str)
   object JsObj {
-    def apply(vals: (String, JsValue)*) = JsObject(Seq(vals: _*))
+    def apply(vals: (String, JsValue)*) = JsObject(vals.toSeq)
   }
   object JsArr {
-    def apply(stuff: JsValue*) = JsArray(Seq(stuff: _*))
-    def apply[T](stuff: T*)(implicit writes: Writes[T]) = JsArray(Seq(stuff.map{_.toJson}: _*))
+    def apply(stuff: JsValue*) = JsArray(stuff.toSeq)
+    def apply[T](stuff: T*)(implicit writes: Writes[T]) = JsArray(stuff.map{_.toJson}.toSeq)
   }
 }

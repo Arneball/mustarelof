@@ -16,7 +16,7 @@ object Order {
 }
 
 object ExcelParser {
-  def parse(stream: InputStream) = {
+  def parse(stream: InputStream): Seq[Order] = {
     
     val sheet = WorkbookFactory.create(stream).getSheetAt(0)
     val headerRow = sheet.getRow(0)
@@ -29,11 +29,11 @@ object ExcelParser {
       case _ => 
     }
     val parser = new RowParser(adressI, nameI)
-    val parsedRows = 1 to sheet.getLastRowNum map { rowIndex =>
+    val parsedOrders = 1 to sheet.getLastRowNum map { rowIndex =>
       parser.parse(sheet.getRow(rowIndex))
     }
-    Logger.debug(s"$parsedRows")
-    parsedRows
+    Logger.debug(s"$parsedOrders")
+    parsedOrders
   }
   private implicit def row2iterable(r: Row): List[Cell] = r.cellIterator.toList
   def main(args: Array[String]): Unit = {
