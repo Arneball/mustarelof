@@ -1,8 +1,28 @@
-<html>
-<form action="postdata" method="post" enctype="multipart/form-data">
-<input name="file" type="file"/>
-<input type="text" value="Min adress" name="myaddress"/>
-<input type="submit"/>
-</form>
-<p>Testdata <a href="/assets/teststuff/namnlost.xlsx">här</a></p>
+<!DOCTYPE html>
+<html ng-app="testmodule">
+    <head>
+        <script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
+        <script src="@routes.Assets.at("javascripts/arne.js")"></script>
+    </head>
+    <body>
+        <form action="postdata" method="post" enctype="multipart/form-data">
+            <input name="file" type="file"/>
+	        <input type="text" value="Min adress" name="myaddress"/>
+	        <input type="submit"/>
+	    </form>
+	    <p>Testdata <a href="/assets/teststuff/namnlost.xlsx">här</a></p>
+	    <input ng-model="slask"/>
+	    <div ng-controller="TestController" >
+	         Hello {{ title }}
+		    <li ng-repeat="shit in data">
+		       <ul> {{ shit.name }} - {{ shit.must }}</ul>
+		    </li>
+	    </div>
+	    <p>{{ slask | uppercase }} </p>
+	    <div ng-controller="Header">
+	       <ul ng-repeat="label in labels">
+	           <a href="{{ label.a }}">{{ label.name }}</a>
+	       </ul>
+	    </div>
+    </body>
 </html>

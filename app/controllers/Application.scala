@@ -15,9 +15,9 @@ import play.api.libs.json.JsObject
 import scala.concurrent.Future
 import play.api.libs.Files.TemporaryFile
 import java.io.File
+import views.html.form
 object Application extends Controller {
-  
-  def index = Action {
+  def index = Action{
     Ok(views.html.form())
   }
   private def AsyncAttachmentAction(f: Map[String, File] => Request[MultipartFormData[TemporaryFile]] => Result) = {
