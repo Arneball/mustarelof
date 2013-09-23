@@ -12,7 +12,7 @@ package object utils {
     )
   }
   
-  implicit def jsseqshit[T](s: Seq[T])(implicit writes: Writes[T]) = JsArr(s.map{_.toJson})
+  implicit def jsseqshit[SEQ[A] <: Seq[A], T](s: SEQ[T])(implicit writes: Writes[T]) = JsArr(s.map{_.toJson})
   
   implicit def str2json(str: String): JsString = JsString(str)
   object JsObj {

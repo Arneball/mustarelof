@@ -1,5 +1,6 @@
 package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
+import utils._
 import play.api._
 import play.api.mvc._
 import java.io.ByteArrayInputStream
@@ -16,6 +17,7 @@ import scala.concurrent.Future
 import play.api.libs.Files.TemporaryFile
 import java.io.File
 import views.html.form
+import play.api.libs.json.JsNumber
 object Application extends Controller {
   def index = Action{
     Ok(views.html.form())
@@ -30,6 +32,11 @@ object Application extends Controller {
         }
       }
     }
+  }
+  
+  val testJson = Action{
+    val res = JsArray((1 to 10).map{ int => JsNumber(int) })
+    Ok(res)
   }
   
   val post = AsyncAttachmentAction{ files => implicit r =>

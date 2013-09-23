@@ -26,11 +26,19 @@
 	           <a href="{{ label.a }}">{{ label.name }}</a>
 	       </ul>
 	    </div>
-	    <div id="mustarcontent" ng-controller="mustare">
+	    <div id="mustarcontent" ng-controller="Mustare">
 		    VIEW BELOW {{
 		    <ng-include src="view"></ng-include>
 		    }}
-		    when you press <a ng-click="initDynamic()">HERE</a> the view above will be filled with data from controller mustare
+		    when you press <a ng-click="initDynamic()" style="text-decoration: underline;">HERE</a> the view above will be filled with data from controller mustare
 	    </div> 
+	    
+	    <div ng-controller="WsTest">
+	       <button ng-click="initData()">Get data from WS</button>
+	       <p ng-show="data">
+	           WS response is {{ data }} <br/>
+	           Sum of array is {{ arraysum }}
+	       </p>
+	    </div>
     </body>
 </html>
