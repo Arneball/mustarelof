@@ -14,15 +14,23 @@
 	    <input ng-model="slask"/>
 	    <div ng-controller="TestController" >
 	         Hello {{ title }}
+	         simple loop
 		    <li ng-repeat="shit in data">
 		       <ul> {{ shit.name }} - {{ shit.must }}</ul>
 		    </li>
 	    </div>
 	    <p>{{ slask | uppercase }} </p>
+	    loop with more stuff
 	    <div ng-controller="Header">
 	       <ul ng-repeat="label in labels">
 	           <a href="{{ label.a }}">{{ label.name }}</a>
 	       </ul>
 	    </div>
+	    <div id="mustarcontent" ng-controller="mustare">
+		    VIEW BELOW {{
+		    <ng-include src="view"></ng-include>
+		    }}
+		    when you press <a ng-click="initDynamic()">HERE</a> the view above will be filled with data from controller mustare
+	    </div> 
     </body>
 </html>

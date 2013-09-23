@@ -10,6 +10,11 @@ ourModule.controller 'TestController', ($scope) ->
   }]
   $scope.title = "Hej title"
 
+ourModule.controller 'mustare', ($scope) ->
+  $scope.initDynamic = () ->
+  	$scope.view = "assets/Partials/list.html"
+  	$scope.data = ["ein", "swine", "dry"]
+
 ourModule.controller 'Header', ($scope) ->
   $scope.labels = [{
   		a: "http://google.com"
