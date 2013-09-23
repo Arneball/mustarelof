@@ -22,18 +22,28 @@ object Application extends Controller {
   def index = Action{
     Ok(views.html.form())
   }
-  private def AsyncAttachmentAction(f: Map[String, File] => Request[MultipartFormData[TemporaryFile]] => Result) = {
-    Action(parse.multipartFormData){ r => 
+  
+  /** Handy method to create a AsyncAction pimped with files
+   *  Used like 
+   *  {{{
+   *  def postHandler = AsynchAttachmentAction{ files => request => 
+   *    Ok(files.keys.mkString) 
+   *  }
+   *  }}}
+   */
+  private def AsyncAttachmentAction(fun: Map[String, File] => Request[MultipartFormData[TemporaryFile]] => Result) = {
+    Action(parse.multipartFormData){ requestPimpedWithFiles => 
       Async{
         scala.concurrent.future{
-          val files = r.body.files.map{ fileref => fileref.key -> fileref.ref.file }.toMap
+          val files = requestPimpedWithFiles.body.files.map{ fileref => fileref.key -> fileref.ref.file }.toMap
           println(s"Files $files")
-          f(files)(r)
+          fun(files)(requestPimpedWithFiles)
         }
       }
     }
   }
   
+  /** Used by angular js webservice client */
   val testJson = Action{
     val res = JsArray((1 to 10).map{ int => JsNumber(int) })
     Ok(res)

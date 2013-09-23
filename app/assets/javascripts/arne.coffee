@@ -1,4 +1,4 @@
-ourModule = angular.module "testmodule", []
+ourModule = angular.module "testmodule", [] # empty array is for some kind of dependency injection
 
 controllers = 
   TestController: ($scope, testDataService) ->
@@ -7,7 +7,7 @@ controllers =
   
   Mustare: ($scope) ->
     $scope.initDynamic = () ->
-      $scope.view = "assets/Partials/list.html"
+      $scope.view = "Partials/list.html"
       $scope.data = ["ein", "swine", "dry"]
 
   Header: ($scope, testDataService) ->
