@@ -29,6 +29,10 @@ case class Orchid(rgbColor: Int, plantName: String, length: Double) extends Plan
 
 
 object ScalaTutorial {
+  def main(args: Array[String]): Unit = {
+    printPlant(new Orchid(13, "Shit", 0xFF00FF))
+  }
+  
   def printPlant(plant: Plant) = plant match { // Pattern matching
     case Tree("gran", _) => println("We got a gran") // pattern match på delar av granen
     case Tree(_, length) => println(s"We got a tall tree! Length is $length")

@@ -33,13 +33,13 @@ object OurGeoDecoder {
     }
   }
   
-  def pimped_with_distance(myloc: Seq[AddressWithLocation]): Seq[(AddressWithLocation, Option[Double])] = myloc.length match {
+  def pimped_with_distance(locations: Seq[AddressWithLocation]): Seq[(AddressWithLocation, Option[Double])] = locations.length match {
     case 0 => Nil
-    case 1 => (myloc.head -> None)::Nil
+    case 1 => (locations.head -> None)::Nil
     case n =>
-      myloc.zip(myloc.tail).map{
+      locations.zip(locations.tail).map{
         case (ena, andra) => ena -> Some(ena.distanceTo(andra)) 
-      } :+ myloc.last -> None
+      } :+ locations.last -> None
   } 
   def travelling_salesmen(myloc: AddressWithLocation, seq: Set[AddressWithLocation]): List[AddressWithLocation] = seq match {
     case empty if empty.isEmpty => Nil
