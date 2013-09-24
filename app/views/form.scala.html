@@ -2,7 +2,7 @@
 <html ng-app="testmodule">
     <head>
         <script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
-        <script src="@routes.Assets.at("javascripts/arne.js")"></script>
+        <script src="@routes.Assets.at("javascripts/arne.min.js")"></script>
     </head>
     <body>
         <form action="postdata" method="post" enctype="multipart/form-data">
@@ -11,15 +11,17 @@
 	        <input type="submit"/>
 	    </form>
 	    <p>Testdata <a href="/assets/teststuff/namnlost.xlsx">här</a></p>
-	    <input ng-model="slask"/>
+	    
+	    <input type="text" ng-model="slask"/> <!-- The data entered in this input is bound to $scope.slask -->
 	    <div ng-controller="TestController" >
-	         Hello {{ title }}
-	         simple loop
-		    <li ng-repeat="shit in data">
+	        Hello {{ title }} <br/>
+	        simple loop:
+		    <li ng-repeat="shit in data"> <!-- for shit in data -->
 		       <ul> {{ shit.name }} - {{ shit.must }}</ul>
 		    </li>
 	    </div>
 	    <p>{{ slask | uppercase }} </p>
+	    <br/>
 	    loop with more stuff
 	    <div ng-controller="Header">
 	       <ul ng-repeat="label in labels">
@@ -28,17 +30,22 @@
 	    </div>
 	    <div id="mustarcontent" ng-controller="Mustare">
 		    VIEW BELOW {{
-		    <ng-include src="view"></ng-include>
+		    <ng-include src="view"></ng-include> <!-- Checks the view attribute in $scope -->
 		    }}
 		    when you press <a ng-click="initDynamic()" style="text-decoration: underline;">HERE</a> the view above will be filled with data from controller mustare
 	    </div> 
 	    
 	    <div ng-controller="WsTest">
 	       <button ng-click="initData()">Get data from WS</button>
-	       <p ng-show="data">
-	           WS response is {{ data }} <br/>
-	           Sum of array is {{ arraysum }}
+	       <p ng-show="data"> <!-- Show if $scope.data is set -->
+	           WS response is {{ data }} <br/> <!-- $scope.data is the entire websevice response -->
+	           Sum of array is {{ arraysum }} <!-- $scope.arraysum is the sum of the integers in $scope.data -->
 	       </p>
 	    </div>
+	    <a href="#/route1">first view</a> & <a href="#/route2">second view</a> <!-- routing logic is defined in arne.coffee -->
+	    
+	    <div ng-view>
+	    
+	    </div> 
     </body>
 </html>

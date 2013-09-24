@@ -7,7 +7,7 @@ controllers =
   
   Mustare: ($scope) ->
     $scope.initDynamic = () ->
-      $scope.view = "Partials/list.html"
+      $scope.view = "assets/Partials/list.html"
       $scope.data = ["ein", "swine", "dry"]
 
   Header: ($scope, testDataService) ->
@@ -40,6 +40,15 @@ services =
       promise = $http.get("/test").then (response) -> response.data
       promise # return promise
 
+ourModule.config ($routeProvider) ->
+  $routeProvider.when "/",
+    templateUrl: "assets/Partials/routedefault.html"
+  .when "/route1",
+    templateUrl: "assets/Partials/route1.html"
+  .when "/route2",
+    templateUrl: "assets/Partials/route2.html"
+  .otherwise 
+    redirectTo: "/"
 
 ourModule.controller controllers
 ourModule.service services

@@ -18,11 +18,23 @@ import play.api.libs.Files.TemporaryFile
 import java.io.File
 import views.html.form
 import play.api.libs.json.JsNumber
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 object Application extends Controller {
   def index = Action{
     Ok(views.html.form())
   }
   
+  object Car {
+    implicit val format: Format[Car] = Json.format[Car]
+  }
+  case class Car(manufacturer: String, cubics: Int, maxSpeed: Int)
+  val cars = Action{
+    val cars = List(Car("Saab", 1400, 160), Car("Volvo", 2200, 190))
+    val jsoncars = cars.map{ _.toJson }
+    val responsedata = JsArray(jsoncars)
+    Ok(responsedata)
+  }
   /** Handy method to create a AsyncAction pimped with files
    *  Used like 
    *  {{{
@@ -49,9 +61,9 @@ object Application extends Controller {
     Ok(res)
   }
   
-  val post = AsyncAttachmentAction{ files => implicit r =>
-    val myaddress: AddressWithLocation = r.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
-    Logger.debug(s"Files ${r.body.file("file")}")
+  val post = AsyncAttachmentAction{ files => request =>
+    val myaddress: AddressWithLocation = request.body.asFormUrlEncoded("myaddress").map{ OurGeoDecoder.decode }.head
+    Logger.debug(s"Files ${request.body.file("file")}")
     
     val orders = ExcelParser.parse(new FileInputStream(files("file")))
     val travelorder = OurGeoDecoder.travelling_salesmen(myaddress, orders.toSet)

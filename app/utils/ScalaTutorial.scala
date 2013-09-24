@@ -82,3 +82,61 @@ object ScalaTutorial {
   
   def plantToJson(plant: Plant) = toJson(plant) // it will look for an implicit ToJson[Plant], and it will find it in object Plant 
 }
+
+
+// MOBILER-labben från chalmers
+import Node._
+
+trait Mobile {
+  def weight: Double
+  def height: Int
+  def mirror: Mobile
+}
+
+case class Node(left: Mobile, right: Mobile, leftLen: Double, rightLen: Double) extends Mobile {
+  def height = 1 + Math.max(left.height, right.height)
+  def mirror = copy(left = right.mirror, right = left.mirror, leftLen = rightLen, rightLen = leftLen)
+  def weight = left.weight + right.weight
+  def isBalanced = left.weight * leftLen ~= right.weight * rightLen
+  
+  override def equals(that: Any) = that match {
+    case Node(thatLeft, thatRight, le_leftLen, le_rightLen) =>
+      thatLeft == left && thatRight == right && (le_leftLen ~= le_rightLen)
+    case _ => false
+  }
+  override def toString = s"[($left), $leftLen, ($right), $rightLen]"
+}
+
+case class Leaf(weight: Double) extends Mobile{
+  def height = 1
+  def mirror = this
+  def isBalanced = true
+
+  override def equals(that: Any) = that match{
+    case Leaf(le_w) => le_w ~= weight
+    case _ => false
+  }
+  override def toString = s"$weight"
+}
+
+/** Alla dessa komparatorobject är ekvivalenta */
+object Mobile {
+  implicit val ord = new Ordering[Mobile] {
+    def compare(e1: Mobile, e2: Mobile) = (e1.weight - e2.weight).toInt // intar kan wrappa, inte så bra
+  }
+  
+  private val ord2: Ordering[Mobile] = Ordering.by{ _.weight } // Mest läsbar?
+  private val ord3: Ordering[Mobile] = Ordering.fromLessThan{ _.weight < _.weight } // klovad? 
+                          //Samma som  Ordering.fromLessThan{ (e1, e2) => e1.weight < e2.weight }
+  private object ord4 extends Ordering[Mobile] {
+    def compare(m1: Mobile, m2: Mobile) = Ordering.Double.compare(m1.weight, m2.weight)  // verbos
+  }
+}
+
+object Node {
+  
+  implicit class DoubleW(val f: Double) extends AnyVal {
+    /** pimpa Double med metoden ~= som kollar om differensen är inom ett intervall */
+    def ~=(that: Double) = Math.abs(that - f) < 0.01 
+  }
+}

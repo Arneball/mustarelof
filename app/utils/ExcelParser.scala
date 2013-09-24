@@ -47,7 +47,7 @@ object ExcelParser {
       case _ => 
     }
     val parser = new RowParser(adressIndex=adressI, nameIndex=nameI)
-    val parsedOrders = sheet.rows.drop(1).flatMap{ parser.unapply }
+    val parsedOrders = sheet.rows.drop(1).flatMap{ parser.unapply } // drop 1 since first row is for labels
     Logger.debug(s"$parsedOrders")
     parsedOrders
   }
