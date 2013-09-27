@@ -20,11 +20,15 @@ import views.html.form
 import play.api.libs.json.JsNumber
 import play.api.libs.json.Format
 import play.api.libs.json.Json
-object Application extends Controller {
+import securesocial.core.java.SecureSocial.SecuredAction
+import securesocial.core.SecureSocial
+object Application extends Controller with SecureSocial {
   def index = Action{
     Ok(views.html.form())
   }
-  
+  def konsult = Action{
+    Ok(views.html.konsult())
+  }
   object Car {
     implicit val format: Format[Car] = Json.format[Car]
   }
@@ -34,6 +38,10 @@ object Application extends Controller {
     val jsoncars = cars.map{ _.toJson }
     val responsedata = JsArray(jsoncars)
     Ok(responsedata)
+  }
+  
+  def secure = SecuredAction{ r =>
+    Ok("blaha")
   }
   /** Handy method to create a AsyncAction pimped with files
    *  Used like 

@@ -80,7 +80,29 @@ object ScalaTutorial {
   // Same with other syntax
   def toJson2[T : ToJson](valueToJson: T) = implicitly[ToJson[T]].toJson(valueToJson)
   
-  def plantToJson(plant: Plant) = toJson(plant) // it will look for an implicit ToJson[Plant], and it will find it in object Plant 
+  def plantToJson(plant: Plant) = toJson(plant) // it will look for an implicit ToJson[Plant], and it will find it in object Plant
+  
+  def filterTest(list: Seq[String]) = {
+    def predicate(str: String): Boolean = str.isEmpty
+    def predicate0(str: String) = str.isEmpty
+    type Pred = String => Boolean
+    def predicate2: Pred = (str: String) => str.isEmpty
+    def predicate3: Pred = _.isEmpty
+    
+    def getMegaString: String = io.Source.fromFile("/tmp/megastring.txt").getLines.mkString 
+    def isGreaterThanMega(str: String): Boolean = str.length > getMegaString.length // superslow
+    val isGreater2: Pred = {
+      val megalength = getMegaString.length
+      str => str.length > megalength                    // creates an anomyous object with megalength cached
+    }
+    
+    list.filter(isGreaterThanMega) // fail
+    list.filter{ str => str.length > getMegaString.length } // same as above
+    list.filter{ _.length > getMegaString.length }          // same as above
+    list.filter(isGreater2) // faster since isGreater2 is a local variable and has megalength cached
+    
+    
+  }
 }
 
 
@@ -122,7 +144,7 @@ case class Leaf(weight: Double) extends Mobile{
 /** Alla dessa komparatorobject är ekvivalenta */
 object Mobile {
   implicit val ord = new Ordering[Mobile] {
-    def compare(e1: Mobile, e2: Mobile) = (e1.weight - e2.weight).toInt // intar kan wrappa, inte så bra
+    def compare(e1: Mobile, e2: Mobile) = (e1.weight - e2.weight).toInt
   }
   
   private val ord2: Ordering[Mobile] = Ordering.by{ _.weight } // Mest läsbar?

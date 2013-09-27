@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html ng-app="konsult">
+    <head>
+        <script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
+        <script src="//code.jquery.com/jquery.js"></script>
+        <script src="@routes.Assets.at("javascripts/konsult.js")"></script>
+        <script src="@routes.Assets.at("js/bootstrap.min.js")"></script>
+        <link href="@routes.Assets.at("css/bootstrap.min.css")" rel="stylesheet" media="screen">
+    </head>
+    <body ng-controller="Lines">
+        <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Hours</th>
+            <th>Extras</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody ng-repeat="data in lines">
+            <td> {{ data.customer }}</td>
+            <td> {{ data.hours }} </td>
+            <td> {{ data.extras }} <button ng-click="showModal(data)" type="button" class="btn btn-info">Show</button> </td>
+        </tbody>
+        </table>
+        
+        <form>
+            <label>Customer</label> <input ng-model="customer"/><br/>
+            <label>Hours</label> <input ng-model="hours"/> <br/>
+            <label>Extras</label> <input ng-model="extras"/> <br/>
+            <input type="submit" value="Add row" ng-click="addLine()">
+        </form>
+        <div class="modal" id="myModal">
+	       <div class="modal-dialog">
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		          <h4 class="modal-title">{{ modal.customer }}</h4>
+		        </div>
+		        <div class="modal-body">
+	                   Worked {{ modal.hours }} for {{ modal.customer }}
+		        </div>
+		        <div class="modal-footer">
+		          <a class="btn" data-dismiss="modal">Close</a>
+		          <a href="#" class="btn btn-primary">Save changes</a>
+		        </div>
+		      </div><!-- /.modal-content -->
+		    </div><!-- /.modal-dialog -->
+		  </div><!-- /.modal -->
+    </body>
+</html>
