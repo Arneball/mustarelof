@@ -13,4 +13,3 @@ ourModule.controller
     $scope.showModal = (line) ->
       $scope.modal = line
       $('#myModal').modal('toggle')
-

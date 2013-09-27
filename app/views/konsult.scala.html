@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html ng-app="konsult">
     <head>
-        <script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
-        <script src="//code.jquery.com/jquery.js"></script>
+        <!--  --><script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js"></script>
+        <script src="http://code.angularjs.org/1.2.0-rc.2/angular-animate.min.js"></script>
+        <script src="http://code.jquery.com/jquery.js"></script>
         <script src="@routes.Assets.at("javascripts/konsult.js")"></script>
         <script src="@routes.Assets.at("js/bootstrap.min.js")"></script>
+        <link href="@routes.Assets.at("css/arne.css")" rel="stylesheet" media="screen" type="text/css">
         <link href="@routes.Assets.at("css/bootstrap.min.css")" rel="stylesheet" media="screen">
     </head>
     <body ng-controller="Lines">
@@ -17,18 +20,19 @@
             <th></th>
           </tr>
         </thead>
-        <tbody ng-repeat="data in lines">
-            <td> {{ data.customer }}</td>
-            <td> {{ data.hours }} </td>
-            <td> {{ data.extras }} <button ng-click="showModal(data)" type="button" class="btn btn-info">Show</button> </td>
-        </tbody>
+	        <tbody ng-repeat="data in lines">
+	            <tr>
+		            <td> {{ data.customer }}</td>
+		            <td> {{ data.hours }} </td>
+		            <td> {{ data.extras }} <button ng-click="showModal(data)" type="button" class="btn btn-info">Show</button> </td>
+	            </tr>
+	        </tbody>
         </table>
-        
-        <form>
-            <label>Customer</label> <input ng-model="customer"/><br/>
-            <label>Hours</label> <input ng-model="hours"/> <br/>
-            <label>Extras</label> <input ng-model="extras"/> <br/>
-            <input type="submit" value="Add row" ng-click="addLine()">
+        <form name="skandal" novalidate class="css-form">
+            <label>Customer</label> <input required ng-model="customer"/><br/>
+            <label>Hours</label> <input type="number" required  name="hours" ng-model="hours"/> {{ skandal.hours.$valid}} <br/>
+            <label>Extras</label> <input  name="extras" ng-model="extras"/>{{ skandal.extras.$valid }} <br/>
+            <input type="submit" ng-disabled="skandal.$invalid" value="Add row" ng-click="addLine()">
         </form>
         <div class="modal" id="myModal">
 	       <div class="modal-dialog">
