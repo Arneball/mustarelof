@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html ng-app="konsult">
     <head>
-        <!--  --><script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js"></script>
-        <script src="http://code.angularjs.org/1.2.0-rc.2/angular-animate.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+        <script src="http://raw.github.com/mgcrea/angular-strap/v0.7.5/dist/angular-strap.min.js"></script>
         <script src="http://code.jquery.com/jquery.js"></script>
+        <script src="@routes.Assets.at("javascripts/bootstrap-ui.js")"></script>
+        <script src="@routes.Assets.at("javascripts/localstorage.js")"></script>
         <script src="@routes.Assets.at("javascripts/konsult.js")"></script>
         <script src="@routes.Assets.at("js/bootstrap.min.js")"></script>
         <link href="@routes.Assets.at("css/arne.css")" rel="stylesheet" media="screen" type="text/css">
@@ -28,11 +29,16 @@
 	            </tr>
 	        </tbody>
         </table>
+        <button ng-click="saveLocally()">Save in local storage</button>
+        <button ng-click="clearLocalStore()">Clear local store</button>
         <form name="skandal" novalidate class="css-form">
-            <label>Customer</label> <input required ng-model="customer"/><br/>
-            <label>Hours</label> <input type="number" required  name="hours" ng-model="hours"/> {{ skandal.hours.$valid}} <br/>
-            <label>Extras</label> <input  name="extras" ng-model="extras"/>{{ skandal.extras.$valid }} <br/>
-            <input type="submit" ng-disabled="skandal.$invalid" value="Add row" ng-click="addLine()">
+            <label>Customer</label>
+            <!--  popover="Enter customer id" popover-trigger="focus"  --> 
+            <input required ng-model="newline.customer"/><br/>
+            <label>Hours</label> <input type="number" required  name="hours" ng-model="newline.hours"/> {{ skandal.hours.$valid}} <br/>
+            <label>Extras</label> <input  name="extras" ng-model="newline.extras"/>{{ skandal.extras.$valid }} <br/>
+            <!-- <input type="submit" ng-disabled="skandal.$invalid" value="Add row" ng-click="addLine()">  -->
+            <button ng-click="addLine()" ng-disabled="skandal.$invalid" class="btn">Add row</button>
         </form>
         <div class="modal" id="myModal">
 	       <div class="modal-dialog">
@@ -41,15 +47,13 @@
 		          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 		          <h4 class="modal-title">{{ modal.customer }}</h4>
 		        </div>
-		        <div class="modal-body">
-	                   Worked {{ modal.hours }} for {{ modal.customer }}
-		        </div>
+		        <div class="modal-body"> Worked {{ modal.hours }} for {{ modal.customer }} </div>
 		        <div class="modal-footer">
 		          <a class="btn" data-dismiss="modal">Close</a>
 		          <a href="#" class="btn btn-primary">Save changes</a>
 		        </div>
-		      </div><!-- /.modal-content -->
-		    </div><!-- /.modal-dialog -->
-		  </div><!-- /.modal -->
+		      </div>
+		    </div>
+		  </div>
     </body>
 </html>

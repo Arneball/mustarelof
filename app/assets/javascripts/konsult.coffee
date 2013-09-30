@@ -1,14 +1,17 @@
-ourModule = angular.module "konsult", [] # empty array is for some kind of dependency injection
+ourModule = angular.module "konsult", ['LocalStorageModule'] # 
 
 ourModule.controller
-  Lines: ($scope) ->
-    $scope.lines = [{customer: "Arne", hours: 3, extras: []}]
-    $scope.addLine = () -> 
-      {customer: c, hours: h, extras: e} = $scope
-      $scope.lines.push
-        customer: c
-        hours: h
-        extras: e
+  Lines: ($scope, localStorageService) ->
+    $scope.lines = localStorageService.get("lines") or []
+    $scope.saveLocally = -> 
+      localStorageService.set "lines", $scope.lines
+
+    $scope.clearLocalStore = -> 
+      localStorageService.remove "lines"
+      $scope.lines = []
+
+    $scope.addLine = -> 
+      $scope.lines.push angular.copy $scope.newline
 
     $scope.showModal = (line) ->
       $scope.modal = line
