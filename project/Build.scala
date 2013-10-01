@@ -18,6 +18,7 @@ object ApplicationBuild extends Build {
     libraryDependencies ++= Seq("net.sourceforge.jexcelapi" % "jxl" % "2.6.12", 
       "org.reactivemongo" % "reactivemongo_2.10" % "0.9",
       "org.apache.poi" % "poi-ooxml" % "3.9",
+      "org.reactivemongo" % "play2-reactivemongo_2.10" % "0.9",
       "com.google.code.geocoder-java" % "geocoder-java" % "0.15"),
     coffeescriptOptions := Seq("bare"),
     EclipseKeys.withSource := true,

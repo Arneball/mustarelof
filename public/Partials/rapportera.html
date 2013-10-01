@@ -1,0 +1,53 @@
+<div>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Customer</th>
+				<th>Hours</th>
+				<th>Extras</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody ng-repeat="data in lines">
+			<tr>
+				<td>{{ data.customer }}</td>
+				<td>{{ data.hours }}</td>
+				<td>{{ data.extras }}
+					<button ng-click="showModal(data)" type="button"
+						class="btn btn-info">Show</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<input type="text" ng-model="user_id" placeholder="Your userid"><br/> 
+	<button ng-click="clearLocalStore()">Clear local store</button>
+	<form name="skandal" novalidate class="css-form">
+		<label>Customer</label>
+		<!--  popover="Enter customer id" popover-trigger="focus"  -->
+		<input required ng-model="newline.customer" /><br /> <label>Hours</label>
+		<input type="number" required name="hours" ng-model="newline.hours" />
+		{{ skandal.hours.$valid}} <br /> <label>Extras</label> <input
+			name="extras" ng-model="newline.extras" />{{ skandal.extras.$valid }}
+		<br />
+		<!-- <input type="submit" ng-disabled="skandal.$invalid" value="Add row" ng-click="addLine()">  -->
+		<button ng-click="addLine()" ng-disabled="skandal.$invalid" class="btn">Add row</button><br/>
+		<button ng-click="savereport()" ng-disabled="!lines.length || !user_id" class="btn">Save report</button><br/>
+	</form>
+	<div class="modal" id="myModal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h4 class="modal-title">{{ modal.customer }}</h4>
+				</div>
+				<div class="modal-body">Worked {{ modal.hours }} for {{
+					modal.customer }}</div>
+				<div class="modal-footer">
+					<a class="btn" data-dismiss="modal">Close</a> <a href="#"
+						class="btn btn-primary">Save changes</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

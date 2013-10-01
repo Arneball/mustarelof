@@ -16,6 +16,11 @@ GET     /cars                       controllers.Application.cars
 GET     /testsec                    controllers.Application.secure
 # secure social stuff below
 
+POST    /reports/:user_id           controllers.ReportsController.postReport(user_id)
+GET     /reports/:user_id           controllers.ReportsController.getReports(user_id)
+PUT     /reports/:user_id           controllers.ReportsController.putReport(user_id, report_id)
+
+ 
 # Login page
 GET     /login                      securesocial.controllers.LoginPage.login
 GET     /logout                     securesocial.controllers.LoginPage.logout
