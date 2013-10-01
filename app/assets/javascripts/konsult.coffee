@@ -1,4 +1,4 @@
-ourModule = angular.module "konsult", ['LocalStorageModule', 'ngResource'] # 
+ourModule = angular.module "konsult", ['LocalStorageModule', 'ngResource', 'xeditable'] # 
 
 
 services = 
@@ -39,7 +39,7 @@ ourModule.controller
   Lines: LineCtrl
   History: HistoryCtrl
 
-
+ourModule.run (editableOptions) -> editableOptions.theme = 'bs3'
 ourModule.service services
 ourModule.config ['$routeProvider', ($routeProvider) ->
   $routeProvider.when "/",

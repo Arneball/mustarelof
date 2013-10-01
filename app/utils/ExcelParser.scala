@@ -51,14 +51,6 @@ object ExcelParser {
     Logger.debug(s"$parsedOrders")
     parsedOrders
   }
-  
-  def main(args: Array[String]): Unit = {
-    println{
-      JsArr{
-        parse(new FileInputStream(new File("/Users/raulbache/Downloads/namnlost.xlsx"))): _*
-      }
-    }
-  }
 }
 
 

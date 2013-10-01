@@ -7,10 +7,30 @@ package object utils {
   }
   
   implicit def jsseqshit[T](s: Seq[T])(implicit writes: Writes[T]) = {
-    val items = s.map{ _.toJson }
+    val items = s.map{ _.toJson.replace_id }
     JsArray(items)
   }
   
+  implicit class JsValueWrapper(val v: JsValue) extends AnyVal {
+    def replace_id: JsValue = v match {
+      case o: JsObject => o.replace_id
+      case e => e
+    }
+  }
+  
+  implicit class JsObjectWrapper(val o: JsObject) extends AnyVal {
+    def replace_id: JsObject = (for {
+      JsOid(idstring) <- o \/ "_id"
+    } yield o - "_id" + ("_id" -> idstring)).getOrElse(o)
+    
+    def \/(label: String) = (o \ label).asOpt[JsValue]
+  }
+  
+  object JsOid {
+    def unapply(o: JsObject) = for {
+      JsString(le_val) <- o \/ "$oid"
+    } yield le_val
+  }
   
   /** implicits that make scala values become JsValues */
   implicit def str2JsString(str: String): JsString = new JsString(str)
@@ -21,7 +41,6 @@ package object utils {
   }
   object JsArr {
     def apply(stuff: JsValue*) = JsArray(stuff.toSeq)
-    def apply[T](stuff: T*)(implicit writes: Writes[T]) = JsArray(stuff.map{_.toJson}.toSeq)
   }
   
   implicit class AnyW[T](val t: T) extends AnyVal {
