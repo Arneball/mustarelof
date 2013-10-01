@@ -1,1 +1,37 @@
-<p>Some stuff goes here</p>
+<div ng-controller="History">
+  <input type="text" placeholder="user id" ng-model="user_id"/>
+  <input type="button" ng-disabled="!user_id" ng-click="fetch()" value="Fetch" class="btn"/>
+  <table class="table table-bordered table-hover table-condensed" style="width: 80%" ng-repeat="rapport in reports">
+    <tr style="font-weight: bold">
+      <td style="width:35%">Customer</td>
+      <td style="width:20%">Hours</td>
+      <td style="width:25%">Edit</td>
+    </tr>
+    <tr ng-repeat="line in rapport.lines">
+      <td>
+        <!-- editable username (text with validation) -->
+        <span editable-text="line.customer" e-name="line.customer" e-form="rowform">
+          {{ line.customer || 'empty' }}
+        </span>
+      </td>
+      <td>
+        <!-- editable status (select-local) -->
+        <span editable-text="line.hours" e-name="line.hours" e-form="rowform">
+          {{ line.hours }}
+        </span>
+      </td>
+      <td style="white-space: nowrap">
+        <!-- form -->
+        <form editable-form name="rowform" onbeforesave="saveUser($data, user.id)" ng-show="rowform.$visible" class="form-buttons form-inline">
+          <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-primary">
+            save
+          </button>
+          <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$hide()" class="btn btn-default">
+            cancel
+          </button>
+        </form>  
+        <button class="btn btn-default" ng-show="!rowform.$visible" ng-click="rowform.$show()">edit</button>
+      </td>
+    </tr>
+  </table>
+</div>
