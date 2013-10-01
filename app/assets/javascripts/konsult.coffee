@@ -1,6 +1,17 @@
 ourModule = angular.module "konsult", ['LocalStorageModule', 'ngResource'] # 
 
-LineCtrl = ($scope, $resource, localStorageService) ->
+
+services = 
+  testDataService: ($resource) ->
+    @reshandler = $resource "/reports/:that_user_id", {that_user_id: "@user_id"} 
+
+    @saveReport = (user_id, lines, callback) -> 
+      @reshandler.save {user_id: user_id, lines: lines}, callback
+
+    @getReports = (user_id, callback)-> 
+      @reshandler.query {that_user_id: user_id}, callback
+  
+LineCtrl = ($scope, $resource, localStorageService, testDataService) ->
   $scope.lines = localStorageService.get("lines") or []
   $scope.saveLocally = -> 
     localStorageService.set "lines", $scope.lines
@@ -18,12 +29,18 @@ LineCtrl = ($scope, $resource, localStorageService) ->
     $('#myModal').modal('toggle')
   
   $scope.savereport = -> 
-    res = $resource "/reports/:that_user_id", {that_user_id: "@user_id"}
-    res.save {user_id: $scope.user_id, lines: $scope.lines}, console.log 
+    testDataService.saveReport $scope.user_id, $scope.lines, -> $scope.clearLocalStore()
+     
+HistoryCtrl = ($scope, $resource, localStorageService, testDataService) ->
+  $scope.fetch = -> 
+    testDataService.getReports $scope.user_id, (res) -> $scope.reports = res 
     
 ourModule.controller
   Lines: LineCtrl
-   
+  History: HistoryCtrl
+
+
+ourModule.service services
 ourModule.config ['$routeProvider', ($routeProvider) ->
   $routeProvider.when "/",
     templateUrl: "assets/Partials/rapportera.html"

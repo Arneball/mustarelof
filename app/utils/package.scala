@@ -6,7 +6,10 @@ package object utils {
     def writes(value: List[JsValue]) = JsArray(value.map{ _.toJson })
   }
   
-  implicit def jsseqshit[SEQ[A] <: Seq[A], T](s: SEQ[T])(implicit writes: Writes[T]) = JsArr(s.map{_.toJson})
+  implicit def jsseqshit[T](s: Seq[T])(implicit writes: Writes[T]) = {
+    val items = s.map{ _.toJson }
+    JsArray(items)
+  }
   
   
   /** implicits that make scala values become JsValues */

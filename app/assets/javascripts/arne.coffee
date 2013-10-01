@@ -20,7 +20,7 @@ controllers =
 
 services =
   testDataService: ($http) ->
-    this.testData = () -> [{
+    this.testData = -> [{
         must: 3  
         name: "arne"
       }, {
@@ -28,7 +28,7 @@ services =
         name: "slaskarn"
       }]
 
-    this.testLabels = () -> [{
+    this.testLabels = -> [{
       a: "http://google.com"
       name: "Gammelgoogel"
     }, {  
@@ -36,7 +36,7 @@ services =
       name: "hastalavista"
     }]
 
-    this.getFromWs = () -> 
+    this.getFromWs = -> 
       promise = $http.get("/test").then (response) -> response.data
       promise # return promise
 
