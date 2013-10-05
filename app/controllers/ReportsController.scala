@@ -39,7 +39,7 @@ object ReportsController extends PimpedController {
   
   def putReport(user_id: String, report_id: String) = JsAction{ report => request =>
     val res = for {
-      lasterror <- MongoAdapter.updateReport(user_id, report_id, report)
+      lasterror <- MongoAdapter.updateReport(user_id, report_id, report - "id")
     } yield lasterror
     
     Async {

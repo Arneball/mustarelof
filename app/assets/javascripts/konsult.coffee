@@ -1,17 +1,6 @@
-ourModule = angular.module "konsult", ['LocalStorageModule', 'ngResource', 'xeditable'] # 
-
-
-services = 
-  testDataService: ($resource) ->
-    @reshandler = $resource "/reports/:that_user_id", {that_user_id: "@user_id"} 
-
-    @saveReport = (user_id, lines, callback) -> 
-      @reshandler.save {user_id: user_id, lines: lines}, callback
-
-    @getReports = (user_id, callback)-> 
-      @reshandler.query {that_user_id: user_id}, callback
+ourModule = angular.module "konsult", ['LocalStorageModule', 'restangular', 'ngResource', 'xeditable'] # 
   
-LineCtrl = ($scope, $resource, localStorageService, testDataService) ->
+LineCtrl = ($scope, localStorageService, Restangular) ->
   $scope.lines = localStorageService.get("lines") or []
   $scope.saveLocally = -> 
     localStorageService.set "lines", $scope.lines
@@ -28,12 +17,14 @@ LineCtrl = ($scope, $resource, localStorageService, testDataService) ->
     $scope.modal = line
     $('#myModal').modal('toggle')
   
-  $scope.savereport = -> 
-    testDataService.saveReport $scope.user_id, $scope.lines, -> $scope.clearLocalStore()
+  $scope.savereport = ->
+    Restangular.one('users', $scope.user_id).all('reports').post { lines: $scope.lines } 
      
-HistoryCtrl = ($scope, $resource, localStorageService, testDataService) ->
+HistoryCtrl = ($scope, $resource, Restangular, localStorageService) ->
   $scope.fetch = -> 
-    testDataService.getReports $scope.user_id, (res) -> $scope.reports = res 
+    $scope.reports = Restangular.one('users',  $scope.user_id).getList('reports')
+  $scope.saveReport = (rapport) ->
+    rapport.put()
     
 ourModule.controller
   Lines: LineCtrl

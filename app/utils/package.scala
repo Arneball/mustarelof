@@ -21,7 +21,7 @@ package object utils {
   implicit class JsObjectWrapper(val o: JsObject) extends AnyVal {
     def replace_id: JsObject = (for {
       JsOid(idstring) <- o \/ "_id"
-    } yield o - "_id" + ("_id" -> idstring)).getOrElse(o)
+    } yield o - "_id" + ("id" -> idstring)).getOrElse(o)
     
     def \/(label: String) = (o \ label).asOpt[JsValue]
   }

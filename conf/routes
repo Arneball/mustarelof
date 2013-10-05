@@ -16,9 +16,9 @@ GET     /cars                       controllers.Application.cars
 GET     /testsec                    controllers.Application.secure
 # secure social stuff below
 
-POST    /reports/:user_id           controllers.ReportsController.postReport(user_id)
-GET     /reports/:user_id           controllers.ReportsController.getReports(user_id)
-PUT     /reports/:user_id           controllers.ReportsController.putReport(user_id, report_id)
+POST    /users/:user_id/reports           controllers.ReportsController.postReport(user_id)
+GET     /users/:user_id/reports           controllers.ReportsController.getReports(user_id)
+PUT     /users/:user_id/reports/:report_id           controllers.ReportsController.putReport(user_id, report_id)
 
  
 # Login page
