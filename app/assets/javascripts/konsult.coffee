@@ -31,7 +31,6 @@ ourModule.controller
   History: HistoryCtrl
 
 ourModule.run (editableOptions) -> editableOptions.theme = 'bs3'
-ourModule.service services
 ourModule.config ['$routeProvider', ($routeProvider) ->
   $routeProvider.when "/",
     templateUrl: "assets/Partials/rapportera.html"
