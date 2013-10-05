@@ -1,4 +1,4 @@
-ourModule = angular.module "konsult", ['LocalStorageModule', 'restangular', 'ngResource', 'xeditable'] # 
+ourModule = angular.module "konsult", ['LocalStorageModule', 'restangular', 'xeditable'] # 
   
 LineCtrl = ($scope, localStorageService, Restangular) ->
   $scope.lines = localStorageService.get("lines") or []
@@ -20,7 +20,7 @@ LineCtrl = ($scope, localStorageService, Restangular) ->
   $scope.savereport = ->
     Restangular.one('users', $scope.user_id).all('reports').post { lines: $scope.lines } 
      
-HistoryCtrl = ($scope, $resource, Restangular, localStorageService) ->
+HistoryCtrl = ($scope, Restangular, localStorageService) ->
   $scope.fetch = -> 
     $scope.reports = Restangular.one('users',  $scope.user_id).getList('reports')
   $scope.saveReport = (rapport) ->
@@ -31,7 +31,7 @@ ourModule.controller
   History: HistoryCtrl
 
 ourModule.run (editableOptions) -> editableOptions.theme = 'bs3'
-ourModule.service services
+
 ourModule.config ['$routeProvider', ($routeProvider) ->
   $routeProvider.when "/",
     templateUrl: "assets/Partials/rapportera.html"
