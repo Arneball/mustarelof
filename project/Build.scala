@@ -10,7 +10,6 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq(
     // Add your project dependencies here,
-    "securesocial" %% "securesocial" % "master-SNAPSHOT"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
@@ -19,6 +18,8 @@ object ApplicationBuild extends Build {
       "org.reactivemongo" % "reactivemongo_2.10" % "0.9",
       "org.apache.poi" % "poi-ooxml" % "3.9",
       "org.reactivemongo" % "play2-reactivemongo_2.10" % "0.9",
+      "com.yahoo.platform.yui" % "yuicompressor" % "2.4.7",
+      "com.itextpdf" % "itextpdf" % "5.4.4",
       "com.google.code.geocoder-java" % "geocoder-java" % "0.15"),
     coffeescriptOptions := Seq("bare"),
     EclipseKeys.withSource := true,

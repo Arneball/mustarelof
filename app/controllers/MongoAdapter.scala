@@ -20,14 +20,17 @@ object MongoAdapter {
   private val db = connection.db("test")
   private def collection(name: String) = db.collection(name)
   
-  private def repcoll = collection("reports")
-  def reports(user_id: String): FutureList = repcoll.find(JsObj("user_id" -> user_id)).cursor.toList
+  private def reports = collection("reports")
+  def reports(user_id: String): FutureList = reports.find(JsObj("user_id" -> user_id)).cursor.toList
   
-  def addReport(user_id: String, report: JsObject) = repcoll.insert(report + ("user_id", user_id))
+  def report(user_id: String, report_id: String): Future[Option[JsObject]] = 
+    reports.find(JsObj("user_id" -> user_id, "_id" -> getId(report_id))).one
+  
+  def addReport(user_id: String, report: JsObject) = reports.insert(report + ("user_id", user_id))
   
   def updateReport(user_id: String, report_id: String, report: JsObject) = {
     val query = JsObj("_id" -> getId(report_id), "user_id" -> user_id)
     val newobj = report ++ query
-    repcoll.update(selector=query, update=newobj)
+    reports.update(selector=query, update=newobj)
   }
 }

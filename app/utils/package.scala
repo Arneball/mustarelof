@@ -18,6 +18,8 @@ package object utils {
     }
   }
   
+  implicit def jsArray2Traversable(js: JsArray): Traversable[JsValue] = js.value
+  
   implicit class JsObjectWrapper(val o: JsObject) extends AnyVal {
     def replace_id: JsObject = (for {
       JsOid(idstring) <- o \/ "_id"
@@ -38,6 +40,7 @@ package object utils {
   implicit def bool2JsBool(b: Boolean): JsBoolean = new JsBoolean(b)
   object JsObj {
     def apply(vals: (String, JsValue)*) = JsObject(vals.toSeq)
+    def unapply(jsobject: JsObject) = Some(jsobject)
   }
   object JsArr {
     def apply(stuff: JsValue*) = JsArray(stuff.toSeq)

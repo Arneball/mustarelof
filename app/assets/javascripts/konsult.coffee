@@ -25,6 +25,8 @@ HistoryCtrl = ($scope, Restangular, localStorageService) ->
     $scope.reports = Restangular.one('users',  $scope.user_id).getList('reports')
   $scope.saveReport = (rapport) ->
     rapport.put()
+  $scope.getPdf = (rapport) ->
+    window.location = "/users/#{ $scope.user_id }/reports/#{ rapport.id }/pdf"
     
 ourModule.controller
   Lines: LineCtrl

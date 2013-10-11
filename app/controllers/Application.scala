@@ -20,9 +20,9 @@ import views.html.form
 import play.api.libs.json.JsNumber
 import play.api.libs.json.Format
 import play.api.libs.json.Json
-import securesocial.core.java.SecureSocial.SecuredAction
-import securesocial.core.SecureSocial
-object Application extends Controller with SecureSocial {
+import play.api.libs.json.JsString
+import scala.collection.concurrent.TrieMap
+object Application extends PimpedController {
   def index = Action{
     Ok(views.html.form())
   }
@@ -39,10 +39,32 @@ object Application extends Controller with SecureSocial {
     val responsedata = JsArray(jsoncars)
     Ok(responsedata)
   }
+  import utils.JsObjectWrapper
   
-  def secure = SecuredAction{ r =>
-    Ok("blaha")
+  private val urlcache = new TrieMap[String, (String, String)]
+  def minify = JsAction{ obj => r =>
+    val urls = for {
+      JsArray(urlarray) <- (obj \/ "urls").toSeq
+      JsString(url) <- urlarray
+    } yield url
+    val minified = MinifierService.minify(urls: _*)
+    
+    //save it
+    def str = util.Random.alphanumeric.take(10).mkString
+    val etag = str
+    val url = str
+    urlcache += url -> (etag, minified)
+    Ok(JsObj("url" -> url))
   }
+  
+  def getJs(url: String) = Action{ r =>
+    (r.headers.get("ETAG"), urlcache.get(url)) match {
+      case (Some(etag), Some((content, savedEtag))) if etag == savedEtag => NotModified
+      case (None, Some((etag, content))) => Ok(content).withHeaders("ETAG" -> etag)
+      case _ => NotFound("bohoo")
+    } 
+  }
+  
   /** Handy method to create a AsyncAction pimped with files
    *  Used like 
    *  {{{

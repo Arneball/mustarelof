@@ -12,7 +12,6 @@ trait PimpedController extends Controller {
   def JsAction(fun: JsObject => Request[AnyContent] => Result ) = Action{ req =>
     val jsonvalueopt = req.body.asJson
     val jsonobjectopt = jsonvalueopt.flatMap{ _.asOpt[JsObject] }
-    jsonobjectopt.map{ fun(_)(req) }.getOrElse(BadRequest("No parcelable json object found"))
+    jsonobjectopt.map{ obj => fun(obj - "id")(req) }.getOrElse(BadRequest("No parcelable json object found"))
   }
-
 }

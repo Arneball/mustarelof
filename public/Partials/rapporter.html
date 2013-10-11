@@ -2,6 +2,7 @@
   <input type="text" placeholder="user id" ng-model="user_id"/>
   <input type="button" ng-disabled="!user_id" ng-click="fetch()" value="Fetch" class="btn btn-default"/>
   <div ng-repeat="rapport in reports">
+    <button class="btn btn-small btn-danger" ng-click="getPdf(rapport)">Pdf</button>
 	  <table class="table table-bordered table-hover table-condensed" style="width: 80%">
 	    <tr style="font-weight: bold">
 	      <td style="width:35%">Customer</td>
