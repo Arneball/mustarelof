@@ -7,7 +7,6 @@ import scala.collection.JavaConversions._
 import java.io.{FileInputStream, File}
 import org.apache.poi.ss.usermodel.{WorkbookFactory, Cell, Row}
 import org.apache.poi.ss.usermodel.Sheet
-
 case class Order(name: String, address_string: String, location: LongLat, raw: String) extends Address with Location{
   def description = name
 }

@@ -48,17 +48,20 @@ object ReportsController extends PimpedController {
       futureResult.recover(genericErrorHandler)
     }
   }
-  
-  def pdf(user_id: String, report_id: String) = Action{
-    val futureReport = for {
-      Some(report) <- MongoAdapter.report(user_id, report_id)
-      _ = Logger.debug(s"Rapport: $report")
-      lines = for {
+  object ReportExtractor {
+    def unapply(report: JsObject) = {
+      val lines = for {
         JsArray(lines) <- (report \/ "lines").toList
         JsObj(line) <- lines
         JsNumber(hours) <- line \/ "hours"
         JsString(customer) <- line \/ "customer"
       } yield Line(hours=hours.toInt, customer=customer, price=540)
+      if(lines.isEmpty) None else Some(lines)
+    }
+  }
+  def pdf(user_id: String, report_id: String) = Action{
+    val futureReport = for {
+      Some(ReportExtractor(lines)) <- MongoAdapter.report(user_id, report_id)
     } yield new Report(consultant=user_id, logo_url="http://f.food-supply.se/21o80k0cnjor68sb.jpg", lines=lines)
     Async {
       futureReport.map{ report =>
@@ -67,4 +70,21 @@ object ReportsController extends PimpedController {
       }.recover(genericErrorHandler)
     }
   }
+  
+  def pdf2(user_id: String, report_id: String) = Action {
+    val futureReport = for {
+      Some(ReportExtractor(lines)) <- MongoAdapter.report(user_id, report_id) 
+    } yield Report(consultant=user_id, logo_url="http://f.food-supply.se/21o80k0cnjor68sb.jpg", lines=lines)
+    Async{
+      futureReport.map{ report =>
+        println("we have report")
+        Ok(PdfCreator2.createPdf(report)).withHeaders("Content-Type" -> "application/pdf")
+      }.recover(genericErrorHandler)
+    }
+  }
 }
+
+case class Line(hours: Double, price: Int, customer: String) {
+  def totalprice = hours * price
+}
+case class Report(consultant: String, logo_url: String, lines: List[Line])

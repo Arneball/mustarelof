@@ -20,6 +20,7 @@ object ApplicationBuild extends Build {
       "org.reactivemongo" % "play2-reactivemongo_2.10" % "0.9",
       "com.yahoo.platform.yui" % "yuicompressor" % "2.4.7",
       "com.itextpdf" % "itextpdf" % "5.4.4",
+	"net.sf.jodreports" % "jodreports" % "2.4.0",
       "com.google.code.geocoder-java" % "geocoder-java" % "0.15"),
     coffeescriptOptions := Seq("bare"),
     EclipseKeys.withSource := true,
