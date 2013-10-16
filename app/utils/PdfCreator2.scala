@@ -21,7 +21,7 @@ object PdfCreator2 extends PdfExtras {
     
     import scala.collection.JavaConversions._
     val fields = stamper.getAcroFields
-    fields.setField("konsult", "batiken")
+    fields.setField("konsult", report.consultant)
     val content = stamper.getOverContent(1)
     println("Here1")
     writeTable(stamper, createTable(report))
