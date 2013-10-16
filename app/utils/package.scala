@@ -1,4 +1,5 @@
 import play.api.libs.json._
+import scala.concurrent.Future
 package object utils {
   type FutureList = scala.concurrent.Future[List[JsValue]]
   
@@ -59,4 +60,9 @@ package object utils {
   }
   
   def getId(id: String) = JsObj("$oid" -> id)
+  
+  implicit class OptFut[T](val o: Option[T]) extends AnyVal {
+    def future(e: => Exception): Future[T] = o.map{ Future.successful }.getOrElse(Future.failed(e))
+    def future: Future[T] = future(new Exception)
+  }
 }

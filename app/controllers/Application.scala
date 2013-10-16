@@ -54,7 +54,9 @@ object Application extends PimpedController {
     val etag = str
     val url = str
     urlcache += url -> (etag, minified)
-    Ok(JsObj("url" -> url))
+    scala.concurrent.future{
+      Ok(JsObj("url" -> url))
+    }
   }
   
   def getJs(url: String) = Action{ r =>
@@ -73,14 +75,12 @@ object Application extends PimpedController {
    *  }
    *  }}}
    */
-  private def AsyncAttachmentAction(fun: Map[String, File] => Request[MultipartFormData[TemporaryFile]] => Result) = {
-    Action(parse.multipartFormData){ requestPimpedWithFiles => 
-      Async{
-        scala.concurrent.future{
-          val files = requestPimpedWithFiles.body.files.map{ fileref => fileref.key -> fileref.ref.file }.toMap
-          println(s"Files $files")
-          fun(files)(requestPimpedWithFiles)
-        }
+  private def AsyncAttachmentAction(fun: Map[String, File] => Request[MultipartFormData[TemporaryFile]] => SimpleResult) = {
+    Action.async(parse.multipartFormData){ requestPimpedWithFiles => 
+      scala.concurrent.future{
+        val files = requestPimpedWithFiles.body.files.map{ fileref => fileref.key -> fileref.ref.file }.toMap
+        println(s"Files $files")
+        fun(files)(requestPimpedWithFiles)
       }
     }
   }
@@ -118,8 +118,4 @@ object Application extends PimpedController {
         "pimped with distance" -> pimped.toJson)
     }
   }
-}
-
-object AttachmentShit extends BodyParser[Array[Byte]]{
-  def apply(req: RequestHeader): Iteratee[Array[Byte], Either[play.api.mvc.Result, Array[Byte]]] = ???
 }

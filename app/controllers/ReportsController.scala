@@ -17,13 +17,11 @@ import play.api.Logger
 import play.api.libs.json.JsArray
 
 object ReportsController extends PimpedController {
-  def getReports(user_id: String) = Action{
+  def getReports(user_id: String) = Action.async{
     val res = for {
       extracted_future: List[JsValue] <- MongoAdapter.reports(user_id)
     } yield Ok(extracted_future: JsValue)
-    Async {
-      res
-    }
+    res
   }
   
   def postReport(user_id: String) = JsAction{ report => request =>
@@ -32,10 +30,7 @@ object ReportsController extends PimpedController {
       postres: LastError <- MongoAdapter.addReport(user_id, report)
       if postres.ok
     } yield Ok(JsObj("success"->true))
-    
-    Async {
-      dbresult.recover(genericErrorHandler)
-    }
+    dbresult
   }
   
   def putReport(user_id: String, report_id: String) = JsAction{ report => request =>
@@ -43,10 +38,7 @@ object ReportsController extends PimpedController {
       lasterror <- MongoAdapter.updateReport(user_id, report_id, report)
       if lasterror.ok
     } yield Ok(JsObj("success"->true))
-    
-    Async {
-      futureResult.recover(genericErrorHandler)
-    }
+    futureResult.recover(genericErrorHandler)
   }
   object ReportExtractor {
     def unapply(report: JsObject) = {
@@ -59,28 +51,25 @@ object ReportsController extends PimpedController {
       if(lines.isEmpty) None else Some(lines)
     }
   }
-  def pdf(user_id: String, report_id: String) = Action{
+  def pdf(user_id: String, report_id: String) = Action.async{
     val futureReport = for {
       Some(ReportExtractor(lines)) <- MongoAdapter.report(user_id, report_id)
     } yield new Report(consultant=user_id, logo_url="http://f.food-supply.se/21o80k0cnjor68sb.jpg", lines=lines)
-    Async {
-      futureReport.map{ report =>
-        val bytes = PdfCreator.createPdf(report)
-        Ok(bytes).withHeaders("Content-Type"->"application/pdf")
-      }.recover(genericErrorHandler)
-    }
+  
+    futureReport.map{ report =>
+      val bytes = PdfCreator.createPdf(report)
+      Ok(bytes).withHeaders("Content-Type"->"application/pdf")
+    }.recover(genericErrorHandler)
   }
   
-  def pdf2(user_id: String, report_id: String) = Action {
+  def pdf2(user_id: String, report_id: String) = Action.async {
     val futureReport = for {
       Some(ReportExtractor(lines)) <- MongoAdapter.report(user_id, report_id) 
     } yield Report(consultant=user_id, logo_url="http://f.food-supply.se/21o80k0cnjor68sb.jpg", lines=lines)
-    Async{
-      futureReport.map{ report =>
-        println("we have report")
-        Ok(PdfCreator2.createPdf(report)).withHeaders("Content-Type" -> "application/pdf")
-      }.recover(genericErrorHandler)
-    }
+    futureReport.map{ report =>
+      println("we have report")
+      Ok(PdfCreator2.createPdf(report)).withHeaders("Content-Type" -> "application/pdf")
+    }.recover(genericErrorHandler)
   }
 }
 

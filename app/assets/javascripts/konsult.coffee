@@ -27,6 +27,8 @@ HistoryCtrl = ($scope, Restangular, localStorageService) ->
     rapport.put()
   $scope.getPdf = (rapport) ->
     window.location = "/users/#{ $scope.user_id }/reports/#{ rapport.id }/pdf"
+  $scope.getPdf2 = (rapport) ->
+    window.location = "/users/#{ $scope.user_id }/reports/#{ rapport.id }/pdf2"
     
 ourModule.controller
   Lines: LineCtrl

@@ -8,20 +8,19 @@ import play.modules.reactivemongo.json.ImplicitBSONHandlers._
 import scala.concurrent.Future
 import utils._
 import play.api.libs.json.JsValue
-import reactivemongo.core.actors.Authenticate
+import reactivemongo.bson.BSONDocument
 object MongoAdapter {
   type FutureList = Future[List[JsValue]]
   private val connection: MongoConnection = {
     val driver = new MongoDriver()
     val nodes = List("ec2-54-229-139-146.eu-west-1.compute.amazonaws.com")
-    val auth = new Authenticate(db="test", user="hej", password="password")
     driver.connection(nodes=nodes, authentications=Nil)
   }
   private val db = connection.db("test")
   private def collection(name: String) = db.collection(name)
   
   private def reports = collection("reports")
-  def reports(user_id: String): FutureList = reports.find(JsObj("user_id" -> user_id)).cursor.toList
+  def reports(user_id: String): FutureList = reports.find(JsObj("user_id" -> user_id)).cursor.collect[List]()
   
   def report(user_id: String, report_id: String): Future[Option[JsObject]] = 
     reports.find(JsObj("user_id" -> user_id, "_id" -> getId(report_id))).one
