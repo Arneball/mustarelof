@@ -2,7 +2,7 @@
 <html ng-app="testmodule">
     <head>
         <script src="@routes.Assets.at("javascripts/angular.min.js")"></script>
-        <script src="@routes.Assets.at("javascripts/arne.min.js")"></script>
+        <script src="@routes.Assets.at("javascripts/arne.js")"></script>
     </head>
     <body>
         <form action="postdata" method="post" enctype="multipart/form-data">
@@ -15,6 +15,9 @@
 	    
 	    <input type="text" ng-model="slask"/> <!-- The data entered in this input is bound to $scope.slask -->
 	    <div ng-controller="TestController" >
+			    <a ng-href="https://graph.facebook.com/oauth/authorize?{{ facebook | serialize }}">Facebooklogin</a>
+			    <br/>
+			    <br/>
 	        Hello {{ title }} <br/>
 	        simple loop:
 		    <li ng-repeat="shit in data"> <!-- for shit in data -->

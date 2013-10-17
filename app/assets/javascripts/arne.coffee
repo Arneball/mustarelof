@@ -1,9 +1,22 @@
 ourModule = angular.module "testmodule", [] # empty array is for some kind of dependency injection
 
+ourModule.filter 'serialize', () -> (obj) ->
+  console.log obj
+  str = []
+  for p of obj when obj.hasOwnProperty p
+    do (p) -> 
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
+   tmp = str.join "&"
+   console.log str
+   tmp
+  
 controllers = 
   TestController: ($scope, testDataService) ->
     $scope.data = testDataService.testData()
     $scope.title = "Hej title"
+    $scope.facebook =
+      client_id: "184407735081979"
+      redirect_uri: "http://skandal.dyndns.tv:9000/fblogin" 
   
   Mustare: ($scope) ->
     $scope.initDynamic = () ->

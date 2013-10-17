@@ -21,6 +21,8 @@ GET     /users/:user_id/reports/:report_id/pdf2           controllers.ReportsCon
 # Lek
 POST    /minify                     controllers.Application.minify
 GET     /getmini/:etag                  controllers.Application.getJs(etag)
+GET     /fblogin/:args              controllers.Application.fbtest(args)
+
 
 # Login page
 GET     /login                      securesocial.controllers.LoginPage.login

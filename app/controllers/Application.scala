@@ -118,4 +118,8 @@ object Application extends PimpedController {
         "pimped with distance" -> pimped.toJson)
     }
   }
+  
+  def fbtest(args: String) = Action{
+    Ok(args)
+  }
 }
