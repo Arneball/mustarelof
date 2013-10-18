@@ -1,5 +1,9 @@
 import play.api.libs.json._
 import scala.concurrent.Future
+import javax.crypto.spec.SecretKeySpec
+import javax.crypto.Mac
+import org.apache.commons.codec.binary.Base64
+import play.Configuration
 package object utils {
   type FutureList = scala.concurrent.Future[List[JsValue]]
   
@@ -64,5 +68,26 @@ package object utils {
   implicit class OptFut[T](val o: Option[T]) extends AnyVal {
     def future(e: => Exception): Future[T] = o.map{ Future.successful }.getOrElse(Future.failed(e))
     def future: Future[T] = future(new Exception)
+  }
+  
+  implicit class PipeOp[T](val t: T) extends AnyVal {
+    def |>[U](f: T => U) = f(t)
+  }
+  
+  lazy val secretKey = play.api.Play.current.configuration.getString("application.secret").get
+  
+  implicit class StringWrapper(val str: String) extends AnyVal {
+    /** Parse a string to Option[T] */
+    def fromJson[T](implicit reads: Reads[T]): Option[T] = {
+      reads.reads(Json.parse(str)).asOpt
+    }
+    /** Returns a SHA1 signature of the string */
+    def sign = {
+      val signingKey = new SecretKeySpec(secretKey.getBytes, "HmacSHA1");
+      val mac = Mac.getInstance("HmacSHA1");
+      mac.init(signingKey);
+      val rawHmac = mac.doFinal(str.getBytes)
+      Base64.encodeBase64String(rawHmac);    
+    }
   }
 }

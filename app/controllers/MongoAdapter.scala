@@ -9,6 +9,8 @@ import scala.concurrent.Future
 import utils._
 import play.api.libs.json.JsValue
 import reactivemongo.bson.BSONDocument
+import oauth.FbUser
+import reactivemongo.core.commands.LastError
 object MongoAdapter {
   type FutureList = Future[List[JsValue]]
   private val connection: MongoConnection = {
@@ -32,4 +34,12 @@ object MongoAdapter {
     val newobj = report ++ query
     reports.update(selector=query, update=newobj)
   }
+  
+  def setFb(email: String, fbinfo: FbUser): Future[LastError] = {
+    val sel = JsObj("email" -> email)
+    val update = JsObj("$set" -> fbinfo.toJson)
+    collection("users").update(selector=sel, update=update)
+  }
+  
+  def fbUserExists(fbId: String) = collection("users").find{ JsObj("facebook_id" -> fbId)}.one.map{ _.isDefined }
 }

@@ -15,6 +15,7 @@
 	    
 	    <input type="text" ng-model="slask"/> <!-- The data entered in this input is bound to $scope.slask -->
 	    <div ng-controller="TestController" >
+	        <input ng-model="email" ng-placeholder="email address"/>
 			    <a ng-href="https://graph.facebook.com/oauth/authorize?{{ facebook | serialize }}">Facebooklogin</a>
 			    <br/>
 			    <br/>
