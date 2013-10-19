@@ -47,33 +47,7 @@ object Application extends PimpedController {
     val responsedata = JsArray(jsoncars)
     Ok(responsedata)
   }
-  import utils.JsObjectWrapper
-  
-  private val urlcache = new TrieMap[String, (String, String)]
-  def minify = JsAction{ obj => r =>
-    val urls = for {
-      JsArray(urlarray) <- (obj \/ "urls").toSeq
-      JsString(url) <- urlarray
-    } yield url
-    val minified = MinifierService.minify(urls: _*)
-    
-    //save it
-    def str = util.Random.alphanumeric.take(10).mkString
-    val etag = str
-    val url = str
-    urlcache += url -> (etag, minified)
-    scala.concurrent.future{
-      Ok(JsObj("url" -> url))
-    }
-  }
-  
-  def getJs(url: String) = Action{ r =>
-    (r.headers.get("ETAG"), urlcache.get(url)) match {
-      case (Some(etag), Some((content, savedEtag))) if etag == savedEtag => NotModified
-      case (None, Some((etag, content))) => Ok(content).withHeaders("ETAG" -> etag)
-      case _ => NotFound("bohoo")
-    } 
-  }
+ 
   
   /** Handy method to create a AsyncAction pimped with files
    *  Used like 
@@ -126,71 +100,24 @@ object Application extends PimpedController {
         "pimped with distance" -> pimped.toJson)
     }
   }
-  implicit object StringMap extends Writes[Map[String, Seq[String]]] {
-    def writes(map: Map[String, Seq[String]]) = {
-      map.foldLeft(JsObject(Nil)) { 
-        case (acc, (key, Seq(value))) => acc + (key, value)
-        case (acc, (key, values))     => acc + (key, values.map{ new JsString(_) })
-      }
-    }
-  }
 
-  def encodeUrl(pairs: (String, String)*): String = {
-    def encode(str: String) = java.net.URLEncoder.encode(str, "utf-8")
-    pairs.map{ case (k, v)=> s"$k=${encode(v)}"}.mkString("&")
-  } 
-  object UrlDecoder {
-    def unapply(body: String): Option[Map[String, String]] = {
-      println(s"Body $body")
-      val pairs = for {
-        pair <- body.split("&")
-        splitted = pair.split("=")
-        if splitted.length == 2
-        Array(key, value) = splitted
-      } yield key -> value
-      val map = pairs.toMap
-      if(map.isEmpty) None else Some(map)
-    }
-  }
-  object AccessTokenBody {
-    def unapply(body: String): Option[(String, Int)] = for {
-      map <- UrlDecoder.unapply(body)
-      access_token <- map.get("access_token")
-      expires <- map.get("expires")
-    } yield access_token -> expires.toInt
-  }
-  
-  def getExternalWs(url: String, params: (String, String)*) = {
-    val parsedParams = encodeUrl(params: _*) 
-    Source.fromURL(url + parsedParams).mkString
-  }
-  
   def fblogin(email: String) = Action.async{ r =>
     val map = r.queryString
     (map.get("code"), map.get("error")) match {
       case (Some(Seq(code)), _) => 
         val futRes = for {
-          user <- initFbUser(email=email, code=code)
-        } yield Ok(user.toJson).withSignedCookies(Cookie("fb", user.facebook_id))
+          cookie <- oauth.FacebookDecoder.initUserData(email=email, code=code)
+        } yield Ok("All good fb").withSignedCookies(cookie)
         futRes
       case _ => 
         future{ Ok(r.queryString.toJson) }
     }
   }
   
-  def userExists(fb: String): Future[Boolean] = { 
-    val tmp = play.api.cache.Cache.getAs[String](fb)
-    if(tmp.isDefined) { 
-      future{ true } 
-    } else {
-      MongoAdapter.fbUserExists(fb)
-    }
-  }
-  
   val protectedContent = Action.async{ r =>
     val res = for {
-      fbid <- r.cookies.get("fb").future(new Exception("No such cookie"))
-      cacheHit <- userExists(fbid.value) 
+      fbCookie <- r.cookies.get("fb").future(new Exception("No such cookie"))
+      cacheHit <- MongoAdapter.userExists(FbUser.withId(fbCookie.value)) 
     } yield {
       Ok("If u can see this then you are pro")
     }
@@ -198,27 +125,4 @@ object Application extends PimpedController {
       case _: Throwable => Redirect("/konsult#/login")
     }
   } 
-  
-  
-  private def initFbUser(email: String, code: String) = for {
-    Some(fbuser) <- getFbData(code, s"http://skandal.dyndns.tv:9000/users/$email/fblogin")
-    lasterror <- MongoAdapter.setFb(email=email, fbuser)
-    if lasterror.ok
-  } yield fbuser
-  
-  private def getFbData(code: String, redirect_uri: String): Future[Option[FbUser]] = {
-    future{
-      val params = List("redirect_uri" -> redirect_uri,
-        "client_secret" -> "55093193de6f163ddf4825f0a81de170",
-        "client_id" -> "184407735081979",
-        "scope" -> "user_friends",
-        "code" -> code)
-      
-      getExternalWs(s"https://graph.facebook.com/oauth/access_token?", params: _*) match {
-        case AccessTokenBody(accesskey, expires) =>
-          getExternalWs(s"https://graph.facebook.com/me?", "access_token" -> accesskey).fromJson[FbUser]
-        case a => None
-      }
-    }
-  }
 }

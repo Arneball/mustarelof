@@ -12,16 +12,21 @@ import play.api.libs.json.JsString
 import play.api.libs.json.Reads
 import play.api.libs.json.Writes
 
-case class FbUser(first_name: String, last_name: String, facebook_id: String)
+case class FbUser(first_name: Option[String], last_name: Option[String], facebook_id: String)
 object FbUser {
+  def withId(id: String) = new FbUser(first_name=None, last_name=None, facebook_id=id)
+  
+  /** Read from Json */
   implicit object reads extends EasyReads[FbUser] {
     def reads(obj : Option[JsObject]) = for {
       jsobj <- obj
-      JsString(fname) <- jsobj \/ "first_name"
-      JsString(lname) <- jsobj \/ "last_name"
+      fname = (jsobj \ "first_name").asOpt[String]
+      lname = (jsobj \ "last_name").asOpt[String]
       JsString(id) <- jsobj \/ "id"
     } yield FbUser(fname, lname, id)
   }
+  
+  /** Write to json */ 
   implicit val writes = Json.writes[FbUser]
 }
 
