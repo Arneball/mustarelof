@@ -22,6 +22,7 @@ GET     /users/:user_id/reports/:report_id/pdf2           controllers.ReportsCon
 
 GET     /users/:email/fblogin              controllers.Application.fblogin(email)
 
+GET     /hasData/:email/:provider          controllers.Application.hasData(email, provider)
 
 # Login page
 GET     /login                      securesocial.controllers.LoginPage.login

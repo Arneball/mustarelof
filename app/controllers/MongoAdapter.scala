@@ -53,16 +53,26 @@ object MongoAdapter {
       collection("users").find{ userFinder.toQuery(userData) }.one.map{ _.isDefined }
     }
   }
+  
+  def emailHas[T](email: String)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
+    collection("users").find{ userFinder.hasData(email) }.one.map { _.isDefined }
+  }
 }
 
 trait UserFinder[T] {
+  def key: String
   def toQuery(t: T): JsObject
   def toCacheKey(t: T): String
+  def hasData(email: String) = JsObj(
+    "email" -> email, 
+    key -> JsObj("$exists" -> true)
+  )
 }
 
 object UserFinder {
   implicit object Fb extends UserFinder[FbUser] {
-    def toQuery(fbuser: FbUser) = JsObj("facebook_id" -> fbuser.facebook_id)
+    def key = "facebook_id"
+    def toQuery(fbuser: FbUser) = JsObj(key -> fbuser.facebook_id)
     def toCacheKey(fbuser: FbUser) = s"fb:${fbuser.facebook_id}"
   }
 }

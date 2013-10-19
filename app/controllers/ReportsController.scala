@@ -40,6 +40,7 @@ object ReportsController extends PimpedController {
     } yield Ok(JsObj("success"->true))
     futureResult.recover(genericErrorHandler)
   }
+  
   object ReportExtractor {
     def unapply(report: JsObject) = {
       val lines = for {
@@ -51,6 +52,7 @@ object ReportsController extends PimpedController {
       if(lines.isEmpty) None else Some(lines)
     }
   }
+  
   def pdf(user_id: String, report_id: String) = Action.async{
     val futureReport = for {
       Some(ReportExtractor(lines)) <- MongoAdapter.report(user_id, report_id)

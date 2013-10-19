@@ -114,15 +114,27 @@ object Application extends PimpedController {
     }
   }
   
-  val protectedContent = Action.async{ r =>
-    val res = for {
-      fbCookie <- r.cookies.get("fb").future(new Exception("No such cookie"))
-      cacheHit <- MongoAdapter.userExists(FbUser.withId(fbCookie.value)) 
-    } yield {
-      Ok("If u can see this then you are pro")
+  def hasData(email: String, provider: String) = Action.async{ r =>
+    val futBoolean = provider match { 
+      case "fb" => MongoAdapter.emailHas[FbUser](email)
+      case _ => ???
     }
-    res.recover{ 
+    futBoolean.map{ res => 
+      Ok(JsObj("provider" -> provider, "user has" -> res))
+    }
+  }
+  def SecureAction(fun: Request[AnyContent] => Future[SimpleResult]) = Action.async { r =>
+    val futureResult = for {
+      fbCookie <- r.cookies.get("fb").future(new Exception("No such cookie"))
+      cacheHit <- MongoAdapter.userExists(FbUser.withId(fbCookie.value))
+      result <- fun(r)
+    } yield result
+    futureResult.recover{ 
       case _: Throwable => Redirect("/konsult#/login")
     }
-  } 
+  }
+  
+  val protectedContent = SecureAction{ r =>
+    future { Ok("Secret content") }
+  }
 }
