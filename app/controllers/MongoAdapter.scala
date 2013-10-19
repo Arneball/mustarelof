@@ -57,6 +57,8 @@ object MongoAdapter {
   def emailHas[T](email: String)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
     collection("users").find{ userFinder.hasData(email) }.one.map { _.isDefined }
   }
+  
+  def addDummy(email: String) = collection("users").insert(JsObj("email" -> email))
 }
 
 trait UserFinder[T] {

@@ -48,7 +48,13 @@ FbController = ($scope, Restangular) ->
     $scope.facebook = serialize
       client_id: "184407735081979"
       redirect_uri: "http://skandal.dyndns.tv:9000/users/#{ $scope.email }/fblogin"
-  $scope.updateEmail = -> initFb()
+  $scope.updateUrl = -> initFb()
+  $scope.submit = ->
+    window.location.href = "https://graph.facebook.com/oauth/authorize?#{ $scope.facebook }"
+  
+  $scope.dummy = ->
+    Restangular.one("dummy").one($scope.newemail).get().then (res) ->
+      alert(res.errtext) if !res.success 
       
 ourModule.controller
   Lines: LineCtrl

@@ -29,6 +29,7 @@ import play.api.libs.json.Reads
 import play.api.libs.json.JsValue
 import controllers2._
 import net.sf.ehcache.Cache
+import play.api.libs.json.JsNull
 object Application extends PimpedController {
   def index = Action{ r =>
     Logger.debug(s"Valid sign: ${r.cookies("apa").hasValidSign}")
@@ -114,13 +115,25 @@ object Application extends PimpedController {
     }
   }
   
+  def dummy(email: String) = Action.async {
+    val res = for {
+      lasterror <- MongoAdapter.addDummy(email)
+    } yield Ok(JsObj(
+        "success" -> lasterror.ok, 
+        "errtext" -> lasterror.errMsg.map{ new JsString(_)}.getOrElse(JsNull)
+      ))
+    res.recover{
+      case e: Exception => Ok(JsObj("success" -> false, "errtext" -> e.getMessage))
+    }
+  }
+  
   def hasData(email: String, provider: String) = Action.async{ r =>
     val futBoolean = provider match { 
       case "fb" => MongoAdapter.emailHas[FbUser](email)
       case _ => ???
     }
     futBoolean.map{ res => 
-      Ok(JsObj("provider" -> provider, "user has" -> res))
+      Ok(JsObj("provider" -> provider, "user_has" -> res))
     }
   }
   def SecureAction(fun: Request[AnyContent] => Future[SimpleResult]) = Action.async { r =>
