@@ -31,11 +31,16 @@ import controllers2._
 import net.sf.ehcache.Cache
 object Application extends PimpedController {
   def index = Action{ r =>
-    Logger.debug(s"Valid sign: ${r.cookies("apa").hasValidSign}")
     Ok(views.html.form()).withSignedCookies(Cookie("apa", "svin"))
   }
   def konsult = Action{
     Ok(views.html.konsult())
+  }
+  def route = Action{
+    Ok(views.html.route_manager())
+  }
+  def time = Action{
+    Ok(views.html.time_report())
   }
   object Car {
     implicit val format: Format[Car] = Json.format[Car]

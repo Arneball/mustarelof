@@ -1,0 +1,46 @@
+@CHARSET "UTF-8";
+body{
+	font:15px/1.3 'Open Sans', sans-serif;
+	color: #5e5b64;
+	text-align:center;
+}
+
+html, body, #map-canvas {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+ul li{
+	padding:20px 30px;
+	background-color:#e35885;
+	margin-bottom:8px;
+	box-shadow:0 1px 1px rgba(0,0,0,0.1);
+	cursor:pointer;
+}
+ul{
+	list-style:none;
+	color:#fff;
+	font-size:20px;
+	font-weight:bold;
+	text-align: left;
+	margin:20px 0 15px;
+}
+ul li span{
+	float:right;
+}
+ul li.active{
+	background-color:#8ec16d;
+}
+.searchBar{
+	background-color:#5c9bb7;
+
+	background-image:-webkit-linear-gradient(top, #5c9bb7, #5392ad);
+	background-image:-moz-linear-gradient(top, #5c9bb7, #5392ad);
+	background-image:linear-gradient(top, #5c9bb7, #5392ad);
+
+	box-shadow: 0 1px 1px #ccc;
+	border-radius: 2px;
+	width: 100%;
+	padding: 14px;
+}
+

@@ -1,0 +1,10 @@
+@CHARSET "UTF-8";
+.inactive{
+	background-color:#e35885;
+	box-shadow:0 1px 1px rgba(0,0,0,0.1);
+	cursor:pointer;	
+	widht: 100%;
+}
+.active{
+	background-color:#8ec16d;
+}
