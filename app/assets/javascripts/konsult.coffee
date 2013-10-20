@@ -1,17 +1,13 @@
 ourModule = angular.module "konsult", ['LocalStorageModule', 'restangular', 'xeditable'] # 
 
 serialize = (obj) ->
-  console.log obj
   str = []
   for p of obj when obj.hasOwnProperty p
     do (p) -> 
       str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
-   tmp = str.join "&"
-   console.log str
-   tmp
+   str.join "&"
 
 ourModule.filter 'serialize', () -> serialize
-
 
 LineCtrl = ($scope, localStorageService, Restangular) ->
   $scope.lines = localStorageService.get("lines") or []
@@ -43,12 +39,22 @@ HistoryCtrl = ($scope, Restangular, localStorageService) ->
   $scope.getPdf2 = (rapport) ->
     window.location = "/users/#{ $scope.user_id }/reports/#{ rapport.id }/pdf2"
 
-FbController = ($scope) ->
+FbController = ($scope, Restangular) ->
   initFb = ->
+    Restangular.one("hasData", $scope.email).one("fb").get().then (result) ->
+      {user_has: should_fail} = result
+      $scope.disableFb = should_fail
+      
     $scope.facebook = serialize
       client_id: "184407735081979"
       redirect_uri: "http://skandal.dyndns.tv:9000/users/#{ $scope.email }/fblogin"
   $scope.updateUrl = -> initFb()
+  $scope.submit = ->
+    window.location.href = "https://graph.facebook.com/oauth/authorize?#{ $scope.facebook }"
+  
+  $scope.dummy = ->
+    Restangular.one("dummy").one($scope.newemail).get().then (res) ->
+      alert(res.errtext) if !res.success 
       
 ourModule.controller
   Lines: LineCtrl

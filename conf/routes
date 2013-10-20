@@ -21,11 +21,11 @@ GET     /users/:user_id/reports           controllers.ReportsController.getRepor
 PUT     /users/:user_id/reports/:report_id           controllers.ReportsController.putReport(user_id, report_id)
 GET     /users/:user_id/reports/:report_id/pdf           controllers.ReportsController.pdf(user_id, report_id)
 GET     /users/:user_id/reports/:report_id/pdf2           controllers.ReportsController.pdf2(user_id, report_id)
-# Lek
-POST    /minify                     controllers.Application.minify
-GET     /getmini/:etag                  controllers.Application.getJs(etag)
+
 GET     /users/:email/fblogin              controllers.Application.fblogin(email)
 
+GET     /dummy/:email                      controllers.Application.dummy(email)
+GET     /hasData/:email/:provider          controllers.Application.hasData(email, provider)
 
 # Login page
 GET     /login                      securesocial.controllers.LoginPage.login

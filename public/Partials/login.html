@@ -1,6 +1,14 @@
 <div ng-controller="Fb">
-  <input ng-model="email" ng-change="updateUrl()" placeholder="Email address">
-  <a ng-href="https://graph.facebook.com/oauth/authorize?{{ facebook }}">Facebooklogin</a>"
+  <form name="f1" novalidate ng-submit="submit()" class="css-form">
+    <input required type="email" ng-model="email" ng-change="updateUrl()" placeholder="Email address">
+    <button class="btn btn-green" ng-disabled="!f1.$valid || disableFb">Map facebook to email</button>
+  </form>
   <br/>
+  
+  <form name="form" novalidate ng-submit="dummy()" class="css-form">
+    <input required type="email" name="email" ng-model="newemail" placeholder="Email address">
+    <span>For test, enter a email here, then you can map it to your email in the form above</span>
+    <button ng-disabled="!form.email.$valid" class="btn btn-green">New email in system</button>    
+  </form>
   <a href="/sectest">Secure content. doesnt work without login</a>
 </div>
