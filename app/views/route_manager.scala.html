@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/route_manager.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/route_manager_map.js")"></script>
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("css/route_manager.css")" rel="stylesheet" media="screen"/>
+
+<title>Route Manager</title>
+<script type="text/javascript">
+
+</script>
+
+</head>
+<body ng-app ng-controller="RouteManager">
+	<table style="width:100%;height:100%;">
+		<tr style="width:100%;height:5%;">
+			<td colspan="2">
+				<div class="searchBar">
+					<input type="text" placeholder="Sök här" style="width:40%;">
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:50%;height:90%;">
+				<div id="map-canvas"></div>
+			</td>
+			<td style="width:50%;height:90%;">
+				<h3>New locations:</h3>
+				<ul>
+					<li ng-repeat="location in locations" ng-click="toggleActive(location)" ng-class="{active:location.active}">
+						{{location.name}} <span>{{location.address}}</span>
+					</li>
+				</ul>
+			</td>
+		</tr>
+		<tr style="width:100%;height:5%;">
+			<td colspan="2">
+				<div class="searchBar">
+					<h4>
+						Total distance: <span id="totalDist">0</span>km
+					</h4>
+				</div>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>
