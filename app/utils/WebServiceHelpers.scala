@@ -38,10 +38,11 @@ object AccessTokenBody {
 object WebService {
   import scala.concurrent.ExecutionContext.Implicits._
   import dispatch._
-  def getExternalWs(purl: String, params: (String, String)*): Future[String] =
-    Http(url(purl).GET << params).map{ _.getResponseBody }
-  
-  def postExternalWs(purl: String, params: (String, String)*): Future[String] =
-    Http(url(purl).POST << params).map{ _.getResponseBody }
+  def getExternalWs(purl: String, params: (String, String)*): Future[String] = {
+    Http(url(purl) <<? params).map{ _.getResponseBody }
+  }
+  def postExternalWs(purl: String, params: (String, String)*): Future[String] = {
+    Http(url(purl) << params).map{ _.getResponseBody }
+  }
   
 }

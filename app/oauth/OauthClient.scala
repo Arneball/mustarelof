@@ -50,9 +50,11 @@ object FacebookDecoder extends Decoder[FbUser] {
       "code" -> code)
     for {
       // first get access token
-      AccessTokenBody(accesskey, expires) <- getExternalWs(s"https://graph.facebook.com/oauth/access_token?", params: _*)
+      AccessTokenBody(accesskey, expires) <- getExternalWs(s"https://graph.facebook.com/oauth/access_token", params: _*)
+      _ = Logger.debug(s"have access token $accesskey")
       // then get userData
-      userData <- getExternalWs(s"https://graph.facebook.com/me?", "access_token" -> accesskey)
+      userData <- getExternalWs(s"https://graph.facebook.com/me", "access_token" -> accesskey)
+      _ = Logger.debug(s"Userdata: $userData")
       // then parse the json to an FbUser
     } yield for {
       fbUser <- userData.fromJson[FbUser]
