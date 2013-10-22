@@ -14,16 +14,13 @@ import play.api.Logger
 
 trait Decoder[T] {
   type Req = Request[AnyContent]
+
   def cookieName: String
   def cookieValue(t: T): String
+  def getUserData(email: String, code: String): Future[Option[T]]
   
   /** Looks in MongoDb for a user with T-specific credentials */
   def validUser[T : UserFinder](t: T): Future[Boolean] = MongoAdapter.userExists(t)
-  
-  
-  private def getCookieValue(r: Req): Option[String] = {
-    r.cookies.find(_.name == cookieName).filter{ _.hasValidSign }.map{ _.value }
-  }
   
   /** Returns the cookie that is set when init is done */
   def initUserData(email: String, code: String)(implicit uf: UserFinder[T]): Future[Cookie] = for {
@@ -32,8 +29,6 @@ trait Decoder[T] {
     if lasterror.ok
   } yield Cookie(cookieName, cookieValue(user))
   
-  /** Abstract that returns a future oauthuser */
-  def getUserData(email: String, code: String): Future[Option[T]]
 }
 
 object FacebookDecoder extends Decoder[FbUser] {
@@ -56,9 +51,7 @@ object FacebookDecoder extends Decoder[FbUser] {
       userData <- getExternalWs(s"https://graph.facebook.com/me", "access_token" -> accesskey)
       _ = Logger.debug(s"Userdata: $userData")
       // then parse the json to an FbUser
-    } yield for {
-      fbUser <- userData.fromJson[FbUser]
-    } yield fbUser
+    } yield userData.fromJson[FbUser]
   }
 }
 
