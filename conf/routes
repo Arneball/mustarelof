@@ -21,7 +21,9 @@ GET     /users/:user_id/reports/:report_id/pdf           controllers.ReportsCont
 GET     /users/:user_id/reports/:report_id/pdf2           controllers.ReportsController.pdf2(user_id, report_id)
 
 GET     /users/:email/fblogin              controllers.Application.fblogin(email)
+GET     /users/:email/githublogin          controllers.Application.githublogin(email)
 
+GET     /gmaillogin                         controllers.Application.gmaillogin
 GET     /dummy/:email                      controllers.Application.dummy(email)
 GET     /hasData/:email/:provider          controllers.Application.hasData(email, provider)
 

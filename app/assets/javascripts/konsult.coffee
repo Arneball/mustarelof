@@ -40,17 +40,30 @@ HistoryCtrl = ($scope, Restangular, localStorageService) ->
     window.location = "/users/#{ $scope.user_id }/reports/#{ rapport.id }/pdf2"
 
 FbController = ($scope, Restangular) ->
+  init = (type, disableProperty) -> Restangular.one("hasData", $scope.email).one(type).get().then (result) ->
+    {user_has: should_fail} = result
+    $scope[disableProperty] = should_fail
+  
   initFb = ->
-    Restangular.one("hasData", $scope.email).one("fb").get().then (result) ->
-      {user_has: should_fail} = result
-      $scope.disableFb = should_fail
-      
+    init "fb", "disableFb"
     $scope.facebook = serialize
       client_id: "184407735081979"
       redirect_uri: "http://skandal.dyndns.tv:9000/users/#{ $scope.email }/fblogin"
-  $scope.updateUrl = -> initFb()
-  $scope.submit = ->
-    window.location.href = "https://graph.facebook.com/oauth/authorize?#{ $scope.facebook }"
+  
+  initGoogle = ->
+    init "google", "disableGoogle"
+    $scope.google = serialize
+      client_id: "311906667213.apps.googleusercontent.com"
+      redirect_uri: "http://skandal.dyndns.tv:9000/gmaillogin"
+      response_type: "code"
+      state: $scope.email
+      scope: "https://www.googleapis.com/auth/userinfo.profile"
+      
+  $scope.updateForm = -> initFb(); initGoogle()
+  gotoUrl = (url) -> window.location.href = url 
+
+  $scope.submitFb = -> gotoUrl "https://graph.facebook.com/oauth/authorize?#{ $scope.facebook }"
+  $scope.submitGoogle = -> gotoUrl "https://accounts.google.com/o/oauth2/auth?#{ $scope.google }"
   
   $scope.dummy = ->
     Restangular.one("dummy").one($scope.newemail).get().then (res) ->

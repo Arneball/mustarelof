@@ -1,7 +1,9 @@
 <div ng-controller="Fb">
-  <form name="f1" novalidate ng-submit="submit()" class="css-form">
-    <input required type="email" ng-model="email" ng-change="updateUrl()" placeholder="Email address">
-    <button class="btn btn-green" ng-disabled="!f1.$valid || disableFb">Map facebook to email</button>
+  <!-- ng-submit="submit()"  -->
+  <form name="f1" novalidate class="css-form">
+    <input required type="email" ng-model="email" ng-change="updateForm()" placeholder="Email address">
+    <button class="btn btn-green" ng-click="submitFb()" ng-disabled="!f1.$valid || disableFb">Map facebook to email</button>
+    <button class="btn btn-green" ng-click="submitGoogle()" ng-disabled="!f1.$valid || disableGoogle">Map Google to email</button>
   </form>
   <br/>
   

@@ -9,6 +9,7 @@ import utils._
 import utils.WebService._
 import play.api.mvc.Cookie
 import controllers.UserFinder
+import play.api.Logger
 
 
 trait Decoder[T] {
@@ -55,5 +56,26 @@ object FacebookDecoder extends Decoder[FbUser] {
       // then parse the json to an FbUser
       fbUser <- userData.fromJson[FbUser]
     } yield fbUser
+  }
+}
+
+object GoogleDecoder extends Decoder[GoogleUser] {
+  def cookieName = "google"
+  def cookieValue(user: GoogleUser) = user.google_id
+  
+  def getUserData(email: String, code: String): Future[Option[GoogleUser]] = {
+    val redirect_uri = s"http://skandal.dyndns.tv:9000/gmaillogin"
+    val params = List(
+    	"redirect_uri" -> redirect_uri,
+      "client_secret" -> "nPmNeCtO09UfMrBKwRFzMB2H",
+      "client_id" -> "311906667213.apps.googleusercontent.com",
+      "scope" -> "https://www.googleapis.com/auth/userinfo.profile",  
+      "code" -> code,
+      "grant_type" -> "authorization_code"
+    )
+    for {
+      // first get accesstoken
+      JsonAccessTokenBody(accesskey, expires) <- postExternalWs("https://accounts.google.com/o/oauth2/token", params: _*) 
+    } yield Some(GoogleUser(accesskey))
   }
 }

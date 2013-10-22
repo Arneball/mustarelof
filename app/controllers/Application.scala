@@ -102,6 +102,8 @@ object Application extends PimpedController {
     }
   }
 
+  def githublogin(email: String) = Action{ Ok("todo") }
+  
   def fblogin(email: String) = Action.async{ r =>
     val map = r.queryString
     (map.get("code"), map.get("error")) match {
@@ -127,15 +129,31 @@ object Application extends PimpedController {
     }
   }
   
+  val gmaillogin = Action.async{ r =>
+    val map = r.queryString
+    (map.get("code"), map.get("state")) match {
+      case (Some(Seq(code)), Some(Seq(email))) =>
+        Logger.debug(s"code: $code, state: $email")
+        for {
+          Some(cookie) <- oauth.GoogleDecoder.getUserData(email=email, code=code)
+        } yield Ok(cookie.toJson)
+      case _ => 
+        future { Ok(map.mkString) }
+    }
+  }
+  
+  /** Check if the user email is asociated with any provider specific data */
   def hasData(email: String, provider: String) = Action.async{ r =>
+    def has[T : UserFinder] = MongoAdapter.emailHas(email)
     val futBoolean = provider match { 
-      case "fb" => MongoAdapter.emailHas[FbUser](email)
-      case _ => ???
+      case "fb" => has[FbUser]
+      case "google" => has[GoogleUser]
     }
     futBoolean.map{ res => 
       Ok(JsObj("provider" -> provider, "user_has" -> res))
     }
   }
+  
   def SecureAction(fun: Request[AnyContent] => Future[SimpleResult]) = Action.async { r =>
     val futureResult = for {
       fbCookie <- r.cookies.get("fb").future(new Exception("No such cookie"))

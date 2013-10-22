@@ -48,47 +48,20 @@ object MongoAdapter {
     }
   }
   
-  def addOauth[T](email: String, oauthInfo: T)(implicit userFinder: UserFinder[T]): Future[LastError] = {
+  def addOauth[T : UserFinder](email: String, oauthInfo: T): Future[LastError] = {
+    val userFinder = implicitly[UserFinder[T]]
     val sel = JsObj("email" -> email)
     val update = userFinder.insert(oauthInfo)
     collection("users").update(selector=sel, update=update)
   }
   
-  def emailHas[T](email: String)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
-    collection("users").find{ userFinder.hasData(email) }.one.map { _.isDefined }
+  def emailHas[T : UserFinder](email: String): Future[Boolean] = {
+    val uf = implicitly[UserFinder[T]]
+    collection("users").find{ uf.hasData(email) }.one.map { _.isDefined }
   }
   
   /** Collection "users" has uniquness on property "email", so an exception will be thrown if
    *  We attempt to enter an equal email
    */
   def addDummy(email: String): Future[LastError] = collection("users").insert(JsObj("email" -> email))
-}
-
-trait UserFinder[T] {
-  /** Key that T-specifc oauth-param is saved on in user object */
-  def key: String
-  
-  /** Create a lookup query with T */
-  def toQuery(t: T): JsObject
-  
-  /** Insertion query for type T */
-  def insert(t: T): JsObject 
-  
-  /** Create a cache lookup key for T */
-  def toCacheKey(t: T): String
-  
-  /** Check wether the email has any T-login info */
-  def hasData(email: String) = JsObj(
-    "email" -> email, 
-    key -> JsObj("$exists" -> true)
-  )
-}
-
-object UserFinder {
-  implicit object Fb extends UserFinder[FbUser] {
-    def key = "facebook_id"
-    def toQuery(fbuser: FbUser) = JsObj(key -> fbuser.facebook_id)
-    def toCacheKey(fbuser: FbUser) = s"fb:${fbuser.facebook_id}"
-    def insert(fbuser: FbUser) = JsObj("$set" -> fbuser.toJson)
-  }
 }

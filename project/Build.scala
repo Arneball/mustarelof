@@ -22,6 +22,7 @@ object ApplicationBuild extends Build {
       "org.reactivemongo" %% "play2-reactivemongo" % "0.10.0-SNAPSHOT", // exclude("org.scala-stm", "scala-stm_2.10.0") exclude("play", "*"),
       "com.yahoo.platform.yui" % "yuicompressor" % "2.4.7",
       "com.itextpdf" % "itextpdf" % "5.4.4",
+      "net.databinder.dispatch" % "dispatch-core_2.10" % "0.11.0",
       "com.google.code.geocoder-java" % "geocoder-java" % "0.15"),
     coffeescriptOptions := Seq("bare"),
     EclipseKeys.withSource := true,

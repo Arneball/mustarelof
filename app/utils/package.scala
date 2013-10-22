@@ -4,6 +4,7 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
 import org.apache.commons.codec.binary.Base64
 import play.Configuration
+import scala.util.Try
 package object utils {
   type FutureList = scala.concurrent.Future[List[JsValue]]
   
@@ -21,6 +22,7 @@ package object utils {
       case o: JsObject => o.replace_id
       case e => e
     }
+    def \/(label: String) = (v \ label).asOpt[JsValue] 
   }
   
   implicit def jsArray2Traversable(js: JsArray): Traversable[JsValue] = js.value
@@ -77,6 +79,10 @@ package object utils {
   lazy val secretKey = play.api.Play.current.configuration.getString("application.secret").get
   
   implicit class StringWrapper(val str: String) extends AnyVal {
+    def parse: Option[JsValue] = Try {
+      Json.parse(str)
+    }.toOption
+    
     /** Parse a string to Option[T] */
     def fromJson[T](implicit reads: Reads[T]): Option[T] = {
       reads.reads(Json.parse(str)).asOpt
