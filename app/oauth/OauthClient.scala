@@ -41,7 +41,7 @@ object FacebookDecoder extends Decoder[FbUser] {
     
   def cookieValue(f: FbUser) = f.facebook_id
   
-  def getUserData(email: String, code: String): Future[Option[FbUser]] = future {
+  def getUserData(email: String, code: String): Future[Option[FbUser]] = {
     val redirect_uri = s"http://skandal.dyndns.tv:9000/users/$email/fblogin"
     val params = List("redirect_uri" -> redirect_uri,
       "client_secret" -> "55093193de6f163ddf4825f0a81de170",
@@ -54,6 +54,7 @@ object FacebookDecoder extends Decoder[FbUser] {
       // then get userData
       userData <- getExternalWs(s"https://graph.facebook.com/me?", "access_token" -> accesskey)
       // then parse the json to an FbUser
+    } yield for {
       fbUser <- userData.fromJson[FbUser]
     } yield fbUser
   }

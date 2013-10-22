@@ -36,27 +36,12 @@ object AccessTokenBody {
 }
 
 object WebService {
-  def getExternalWs(url: String, params: (String, String)*) = {
-    val parsedParams = encodeUrl(params: _*) 
-    Source.fromURL(url + parsedParams).mkString match {
-      case null | "" => None
-      case content => Some(content)
-    }
-  }
   import scala.concurrent.ExecutionContext.Implicits._
   import dispatch._
-  def postExternalWs(purl: String, params: (String, String)*) = {
-    Http( url(purl).POST << params).map{ _.getResponseBody }
-  }
-//    Http.post(url).params(params: _*)/*.option(_.setConnectTimeout(10000))*/.asString
-//  }.recover {
-//    case HttpException(code, message, body, cause) => 
-//      Logger.debug(s"code: $code, message: $message, body: $body")
-//      body
-//  }.toOption
+  def getExternalWs(purl: String, params: (String, String)*): Future[String] =
+    Http(url(purl).GET << params).map{ _.getResponseBody }
   
-  def encodeUrl(pairs: (String, String)*): String = {
-    def encode(str: String) = java.net.URLEncoder.encode(str, "utf-8")
-    pairs.map{ case (k, v)=> s"$k=${encode(v)}"}.mkString("&")
-  } 
+  def postExternalWs(purl: String, params: (String, String)*): Future[String] =
+    Http(url(purl).POST << params).map{ _.getResponseBody }
+  
 }
