@@ -23,8 +23,11 @@ object UrlDecoder {
 object JsonAccessTokenBody {
   def unapply(body: String): Option[(String, Int)] = for {
     js <- body.parse
+    _ = Logger.debug(s"Parse ok")
     JsString(accTok) <- js \/ "access_token"
+    _ = Logger.debug(s"Have access token")
     JsNumber(exp) <- js \/ "expires_in"
+    _ = Logger.debug(s"Have expires in")
   } yield accTok -> exp.toInt
 }
 object AccessTokenBody {
@@ -42,7 +45,10 @@ object WebService {
     Http(url(purl) <<? params).map{ _.getResponseBody }
   }
   def postExternalWs(purl: String, params: (String, String)*): Future[String] = {
-    Http(url(purl) << params).map{ _.getResponseBody }
+    Http(url(purl) << params).map{ b => Logger.debug(b.getResponseBody); b.getResponseBody }
   }
   
+  def postExternalWsHeaders(purl: String, params: (String, String)*): Future[String] = {
+    Http(url(purl) <:<  params).map{ _.getResponseBody }
+  }
 }

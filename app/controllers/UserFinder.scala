@@ -35,9 +35,9 @@ object UserFinder {
     def insert(fbuser: FbUser) = JsObj("$set" -> fbuser.toJson)
   }
   implicit object Google extends UserFinder[GoogleUser] {
-    def key = "github_id"
+    def key = "google_id"
     def toQuery(u: GoogleUser) = JsObj(key -> u.google_id)
-    def toCacheKey(u: GoogleUser) = s"github:${u.google_id}"
+    def toCacheKey(u: GoogleUser) = s"google:${u.google_id}"
     def insert(u: GoogleUser) = JsObj("$set" -> u.toJson)
   }
 }

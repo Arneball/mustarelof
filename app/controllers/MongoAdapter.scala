@@ -42,7 +42,8 @@ object MongoAdapter {
    *  b) exists in mongodb
    */
   def userExists[T](userData: T)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
-    val cacheOpt = play.api.cache.Cache.get(userFinder.toCacheKey(userData))
+    val cacheKey = userFinder.toCacheKey(userData)
+    val cacheOpt = play.api.cache.Cache.get(cacheKey)
     cacheOpt.map{ _ => future{ true } }.getOrElse {
       collection("users").find{ userFinder.toQuery(userData) }.one.map{ _.isDefined }
     }
@@ -52,9 +53,14 @@ object MongoAdapter {
     val userFinder = implicitly[UserFinder[T]]
     val sel = JsObj("email" -> email)
     val update = userFinder.insert(oauthInfo)
-    collection("users").update(selector=sel, update=update)
+    collection("users").update(selector=sel, update=update, upsert=false)
   }
   
+  /** Check if email is mapped to any Oauth data
+   *  UserFinder[T] has method hasData(String) that returns a search query used if collection(...).find( _ )
+   *  .one returns an Future[Option[JsObject]]
+   *  .map { _.isDefined } returns Future[Boolean]
+   */
   def emailHas[T : UserFinder](email: String): Future[Boolean] = {
     val uf = implicitly[UserFinder[T]]
     collection("users").find{ uf.hasData(email) }.one.map { _.isDefined }
@@ -64,4 +70,10 @@ object MongoAdapter {
    *  We attempt to enter an equal email
    */
   def addDummy(email: String): Future[LastError] = collection("users").insert(JsObj("email" -> email))
+  
+  
+  def getUser[T : UserFinder](t: T): Future[Option[JsObject]] = {
+    val query = implicitly[UserFinder[T]].toQuery(t)
+    collection("users").find(query).one
+  }
 }

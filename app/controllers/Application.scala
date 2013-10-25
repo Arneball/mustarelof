@@ -114,7 +114,7 @@ object Application extends PimpedController {
     (map.get("code"), map.get("error")) match {
       case (Some(Seq(code)), _) => 
         val futRes = for {
-          cookie <- oauth.FacebookDecoder.initUserData(email=email, code=code)
+          cookie <- Decoder.FacebookDecoder.initUserData(email=email, code=code)
         } yield Ok("All good fb").withSignedCookies(cookie)
         futRes
       case _ => 
@@ -140,8 +140,13 @@ object Application extends PimpedController {
       case (Some(Seq(code)), Some(Seq(email))) =>
         Logger.debug(s"code: $code, state: $email")
         for {
-          Some(cookie) <- oauth.GoogleDecoder.getUserData(email=email, code=code)
-        } yield Ok(cookie.toJson)
+          cookie <- Decoder.GoogleDecoder.initUserData(email=email, code=code)
+        } yield Ok("google good").withSignedCookies(cookie)
+      case (Some(Seq(code)), _) => //  
+        for {
+          Some(user_data) <- Decoder.GoogleDecoder.getUserData(None, code)
+          Some(dbResult) <- MongoAdapter.getUser(user_data)
+        } yield Ok(dbResult).withSignedCookies(Decoder.toCookie(user_data))
       case _ => 
         future { Ok(map.mkString) }
     }
@@ -150,19 +155,29 @@ object Application extends PimpedController {
   /** Check if the user email is asociated with any provider specific data */
   def hasData(email: String, provider: String) = Action.async{ r =>
     def has[T : UserFinder] = MongoAdapter.emailHas(email)
-    val futBoolean = provider match { 
+    val futBool = provider match { 
       case "fb" => has[FbUser]
       case "google" => has[GoogleUser]
     }
-    futBoolean.map{ res => 
+    futBool.map{ res => 
       Ok(JsObj("provider" -> provider, "user_has" -> res))
     }
   }
   
+  object CookE {
+    def unapply(c: Cookie) = if(c.hasValidSign) Some(c.name -> c.value.unsign) else None
+  }
+  
+  def funnyCookies(r: Request[AnyContent]): Future[Boolean] = r.cookies.filter{ _.hasValidSign }.headOption match {
+    case Some(CookE("google", id)) => MongoAdapter.userExists(GoogleUser.withId(id))
+    case Some(CookE("fb", id)) => MongoAdapter.userExists(FbUser.withId(id))
+    case _ => future { false }
+  }
+  
   def SecureAction(fun: Request[AnyContent] => Future[SimpleResult]) = Action.async { r =>
     val futureResult = for {
-      fbCookie <- r.cookies.get("fb").future(new Exception("No such cookie"))
-      cacheHit <- MongoAdapter.userExists(FbUser.withId(fbCookie.value))
+      authenticated <- funnyCookies(r)
+      if authenticated
       result <- fun(r)
     } yield result
     futureResult.recover{ 
@@ -171,6 +186,8 @@ object Application extends PimpedController {
   }
   
   val protectedContent = SecureAction{ r =>
-    future { Ok("Secret content") }
+    future {
+      Ok("satohe")
+    }
   }
 }

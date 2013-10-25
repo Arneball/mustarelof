@@ -95,5 +95,7 @@ package object utils {
       val rawHmac = mac.doFinal(str.getBytes)
       Base64.encodeBase64String(rawHmac);    
     }
+    
+    def unsign = str.take(str.lastIndexOf("."))
   }
 }

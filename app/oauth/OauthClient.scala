@@ -10,6 +10,7 @@ import utils.WebService._
 import play.api.mvc.Cookie
 import controllers.UserFinder
 import play.api.Logger
+import play.api.libs.json.JsValue
 
 
 trait Decoder[T] {
@@ -17,61 +18,72 @@ trait Decoder[T] {
 
   def cookieName: String
   def cookieValue(t: T): String
-  def getUserData(email: String, code: String): Future[Option[T]]
+  def getUserData(email: Option[String], code: String): Future[Option[T]]
   
   /** Looks in MongoDb for a user with T-specific credentials */
   def validUser[T : UserFinder](t: T): Future[Boolean] = MongoAdapter.userExists(t)
   
   /** Returns the cookie that is set when init is done */
   def initUserData(email: String, code: String)(implicit uf: UserFinder[T]): Future[Cookie] = for {
-    Some(user) <- getUserData(email, code)
+    Some(user) <- getUserData(Some(email), code)
     lasterror <- MongoAdapter.addOauth(email, user)
     if lasterror.ok
   } yield Cookie(cookieName, cookieValue(user))
   
 }
 
-object FacebookDecoder extends Decoder[FbUser] {
-  def cookieName = "fb"
-    
-  def cookieValue(f: FbUser) = f.facebook_id
+object Decoder {
+  def toCookie[T : Decoder](t: T) = {
+    val uf = implicitly[Decoder[T]]
+    Cookie(uf.cookieName, uf.cookieValue(t))
+  }
   
-  def getUserData(email: String, code: String): Future[Option[FbUser]] = {
-    val redirect_uri = s"http://skandal.dyndns.tv:9000/users/$email/fblogin"
+  implicit object FacebookDecoder extends Decoder[FbUser] {
+    def cookieName = "fb"
+      
+    def cookieValue(f: FbUser) = f.facebook_id
+      
+    def getUserData(email: Option[String], code: String): Future[Option[FbUser]] = {
+    val redirect_uri = s"http://skandal.dyndns.tv:9000/users/${email.get}/fblogin"
     val params = List("redirect_uri" -> redirect_uri,
       "client_secret" -> "55093193de6f163ddf4825f0a81de170",
       "client_id" -> "184407735081979",
       "scope" -> "user_friends",
       "code" -> code)
-    for {
-      // first get access token
-      AccessTokenBody(accesskey, expires) <- getExternalWs(s"https://graph.facebook.com/oauth/access_token", params: _*)
-      _ = Logger.debug(s"have access token $accesskey")
-      // then get userData
-      userData <- getExternalWs(s"https://graph.facebook.com/me", "access_token" -> accesskey)
-      _ = Logger.debug(s"Userdata: $userData")
-      // then parse the json to an FbUser
-    } yield userData.fromJson[FbUser]
+      for {
+        // first get access token
+        AccessTokenBody(accesskey, expires) <- getExternalWs(s"https://graph.facebook.com/oauth/access_token", params: _*)
+        _ = Logger.debug(s"have access token $accesskey")
+        // then get userData
+        userData <- getExternalWs(s"https://graph.facebook.com/me", "access_token" -> accesskey)
+        _ = Logger.debug(s"Userdata: $userData")
+        // then parse the json to an FbUser
+      } yield userData.fromJson[FbUser]
+    }
   }
-}
-
-object GoogleDecoder extends Decoder[GoogleUser] {
-  def cookieName = "google"
-  def cookieValue(user: GoogleUser) = user.google_id
   
-  def getUserData(email: String, code: String): Future[Option[GoogleUser]] = {
-    val redirect_uri = s"http://skandal.dyndns.tv:9000/gmaillogin"
-    val params = List(
-    	"redirect_uri" -> redirect_uri,
-      "client_secret" -> "nPmNeCtO09UfMrBKwRFzMB2H",
-      "client_id" -> "311906667213.apps.googleusercontent.com",
-      "scope" -> "https://www.googleapis.com/auth/userinfo.profile",  
-      "code" -> code,
-      "grant_type" -> "authorization_code"
-    )
-    for {
-      // first get accesstoken
-      JsonAccessTokenBody(accesskey, expires) <- postExternalWs("https://accounts.google.com/o/oauth2/token", params: _*) 
-    } yield Some(GoogleUser(accesskey))
+  implicit object GoogleDecoder extends Decoder[GoogleUser] {
+    def cookieName = "google"
+    def cookieValue(user: GoogleUser) = user.google_id
+    
+    def getUserData(email: Option[String], code: String): Future[Option[GoogleUser]] = {
+      val redirect_uri = s"http://skandal.dyndns.tv:9000/gmaillogin"
+      val params = List(
+        "redirect_uri" -> redirect_uri,
+        "client_secret" -> "nPmNeCtO09UfMrBKwRFzMB2H",
+        "client_id" -> "311906667213.apps.googleusercontent.com",
+        "scope" -> "https://www.googleapis.com/auth/userinfo.profile",  
+        "code" -> code,
+        "grant_type" -> "authorization_code"
+        )
+      for {
+        // first get accesstoken
+        JsonAccessTokenBody(accesskey, expires) <- postExternalWs("https://accounts.google.com/o/oauth2/token", params: _*)
+        
+        // then get the stuff
+        userData <- postExternalWsHeaders("https://www.googleapis.com/oauth2/v2/userinfo", "Authorization" -> s"Bearer $accesskey")
+        _ = Logger.debug("Google user data " + userData)
+      } yield userData.fromJson[GoogleUser]
+    }
   }
 }

@@ -46,19 +46,20 @@ FbController = ($scope, Restangular) ->
   
   initFb = ->
     init "fb", "disableFb"
-    $scope.facebook = serialize
+    $scope.facebook = serialize # request parameters
       client_id: "184407735081979"
       redirect_uri: "http://skandal.dyndns.tv:9000/users/#{ $scope.email }/fblogin"
   
   initGoogle = ->
     init "google", "disableGoogle"
-    $scope.google = serialize
+    $scope.google = serialize # request paramaters
       client_id: "311906667213.apps.googleusercontent.com"
       redirect_uri: "http://skandal.dyndns.tv:9000/gmaillogin"
       response_type: "code"
       state: $scope.email
       scope: "https://www.googleapis.com/auth/userinfo.profile"
-      
+    
+  
   $scope.updateForm = -> initFb(); initGoogle()
   gotoUrl = (url) -> window.location.href = url 
 

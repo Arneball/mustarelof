@@ -9,6 +9,7 @@ import utils._
 import play.api.mvc.SimpleResult
 import scala.concurrent.Future
 import play.api.mvc.Cookie
+import scala.util.Try
 package object controllers2 {
   
   /** Convenience cache */
@@ -33,10 +34,10 @@ package object controllers2 {
   implicit class CookieWrapper(val c: Cookie) extends AnyVal {
     def sign = c.copy(value=s"${c.value}.${c.value.sign}")
     
-    def hasValidSign: Boolean = {
+    def hasValidSign: Boolean = Try{
       val cval: String = c.value
       val (value, signature) = cval.splitAt(cval.lastIndexOf("."))
       value.sign == signature.substring(1) 
-    }
+    }.getOrElse(false)
   }
 }
