@@ -5,6 +5,13 @@ import javax.crypto.Mac
 import org.apache.commons.codec.binary.Base64
 import play.Configuration
 import scala.util.Try
+import oauth.Decoder
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Document
+import javax.xml.xpath.XPathFactory
+import org.xml.sax.InputSource
+import java.io.Reader
 package object utils {
   type FutureList = scala.concurrent.Future[List[JsValue]]
   
@@ -72,8 +79,9 @@ package object utils {
     def future: Future[T] = future(new Exception)
   }
   
-  implicit class PipeOp[T](val t: T) extends AnyVal {
+  implicit class AnyWrapper[T](val t: T) extends AnyVal {
     def |>[U](f: T => U) = f(t)
+//    def toCookie(implicit dec: Decoder[T]) = play.api.mvc.Cookie(name=dec.cookieName, value=dec.cookieValue(t))
   }
   
   lazy val secretKey = play.api.Play.current.configuration.getString("application.secret").get
@@ -97,5 +105,13 @@ package object utils {
     }
     
     def unsign = str.take(str.lastIndexOf("."))
+    
+    def fromXml = 
+      DocumentBuilderFactory.newInstance.newDocumentBuilder.parse(new InputSource(new StringReader(str)))
+    
+  }
+  
+  implicit class XmlW(val doc: Document) extends AnyVal {
+    def apply(xpath: String) = XPathFactory.newInstance.newXPath.compile(xpath).evaluate(doc)
   }
 }

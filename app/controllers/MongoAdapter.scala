@@ -42,11 +42,11 @@ object MongoAdapter {
    *  b) exists in mongodb
    */
   def userExists[T](userData: T)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
-    val cacheKey = userFinder.toCacheKey(userData)
-    val cacheOpt = play.api.cache.Cache.get(cacheKey)
-    cacheOpt.map{ _ => future{ true } }.getOrElse {
+//    val cacheKey = userFinder.toCacheKey(userData)
+//    val cacheOpt = play.api.cache.Cache.get(cacheKey)
+//    cacheOpt.map{ _ => future{ true } }.getOrElse {
       collection("users").find{ userFinder.toQuery(userData) }.one.map{ _.isDefined }
-    }
+//    }
   }
   
   def addOauth[T : UserFinder](email: String, oauthInfo: T): Future[LastError] = {

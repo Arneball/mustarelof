@@ -1,4 +1,4 @@
-import securesocial.core.UserServicePlugin
+/*import securesocial.core.UserServicePlugin
 import securesocial.core.IdentityId
 import securesocial.core.providers.Token
 import securesocial.core.Identity
@@ -49,4 +49,4 @@ class Arne(application: play.api.Application) extends UserServicePlugin(applicat
   def deleteExpiredTokens() {
     tokens = tokens.filter(!_._2.isExpired)
   }
-}
+}*/

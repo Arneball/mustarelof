@@ -44,6 +44,11 @@ object WebService {
   def getExternalWs(purl: String, params: (String, String)*): Future[String] = {
     Http(url(purl) <<? params).map{ _.getResponseBody }
   }
+  
+  def postWithQstring(purl: String, params: (String, String)*): Future[String] = {
+    Http(url(purl) <<? params).map{ _.getResponseBody }
+  }
+  
   def postExternalWs(purl: String, params: (String, String)*): Future[String] = {
     Http(url(purl) << params).map{ b => Logger.debug(b.getResponseBody); b.getResponseBody }
   }

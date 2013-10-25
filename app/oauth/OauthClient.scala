@@ -10,12 +10,12 @@ import utils.WebService._
 import play.api.mvc.Cookie
 import controllers.UserFinder
 import play.api.Logger
-import play.api.libs.json.JsValue
+import play.api.libs.json._
 
 
 trait Decoder[T] {
   type Req = Request[AnyContent]
-
+  import Decoder._
   def cookieName: String
   def cookieValue(t: T): String
   def getUserData(email: Option[String], code: String): Future[Option[T]]
@@ -28,15 +28,12 @@ trait Decoder[T] {
     Some(user) <- getUserData(Some(email), code)
     lasterror <- MongoAdapter.addOauth(email, user)
     if lasterror.ok
-  } yield Cookie(cookieName, cookieValue(user))
+  } yield toCookie(user)(this)
   
 }
 
 object Decoder {
-  def toCookie[T : Decoder](t: T) = {
-    val uf = implicitly[Decoder[T]]
-    Cookie(uf.cookieName, uf.cookieValue(t))
-  }
+  implicit def toCookie[T](t: T)(implicit d: Decoder[T]): Cookie = Cookie(name=d.cookieName, value=d.cookieValue(t))
   
   implicit object FacebookDecoder extends Decoder[FbUser] {
     def cookieName = "fb"
@@ -86,4 +83,35 @@ object Decoder {
       } yield userData.fromJson[GoogleUser]
     }
   }
+  
+  implicit object LinkedinDecoder extends Decoder[LinkedinUser] {
+    def cookieName= "linkedin"
+    def cookieValue(u: LinkedinUser) = u.linkedin_id
+    def getUserData(email: Option[String], code: String): Future[Option[LinkedinUser]] = {
+      val redirect_uri = "http://skandal.dyndns.tv:9000/linkedinlogin"
+      val params = List(
+        "code" -> code,
+        "redirect_uri" -> redirect_uri,
+        "client_id" -> "or5btja04vjl",
+        "client_secret" -> "GssQdekuoWhU35lQ",
+        "grant_type" -> "authorization_code"
+      )
+      val url = "https://www.linkedin.com/uas/oauth2/accessToken"
+      for {
+        JsonAccessTokenBody(access_token, expires) <- postWithQstring(url, params: _*)
+        _ = Logger.debug(s"Got access key $access_token")
+        userDataXmlStr <- getExternalWs("https://api.linkedin.com/v1/people/~", "oauth2_access_token" -> access_token)
+        userDataXml = userDataXmlStr.fromXml
+        fname = userDataXml("//first-name")
+        flane = userDataXml("//last-name")
+        _ = Logger.debug(s"Fname: $fname, Lname: $flane")
+      } yield Some(LinkedinUser.withId(access_token))
+    }
+  }
 }
+
+object LinkedinUser {
+  implicit val format = Json.format[LinkedinUser]
+  def withId(id: String) = LinkedinUser(id)
+}
+case class LinkedinUser(linkedin_id: String)

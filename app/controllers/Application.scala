@@ -28,7 +28,7 @@ import scala.collection.concurrent.TrieMap
 import play.api.libs.json.Reads
 import play.api.libs.json.JsValue
 import controllers2._
-import net.sf.ehcache.Cache
+//import net.sf.ehcache.Cache
 import play.api.libs.json.JsNull
 object Application extends PimpedController {
   def index = Action{ r =>
@@ -134,21 +134,38 @@ object Application extends PimpedController {
     }
   }
   
-  val gmaillogin = Action.async{ r =>
+  val linkedinlogin = Action.async{ r => 
     val map = r.queryString
     (map.get("code"), map.get("state")) match {
-      case (Some(Seq(code)), Some(Seq(email))) =>
+      case (Some(Seq(code)), Some(Seq(email))) => 
+        Logger.debug(s"Code: $code, state: $email")
+        for {
+          userdata <- Decoder.LinkedinDecoder.getUserData(Some(email), code)
+        } yield Ok(userdata.toJson)
+    }
+  }
+  
+  val gmaillogin = Action.async{ r =>
+    val map = r.queryString
+    val tupleToMatch = (map.get("code"), map.get("state")) 
+    val futRes = tupleToMatch match {
+      case (Some(Seq(code)), Some(Seq(email))) => // here we init account with some data
         Logger.debug(s"code: $code, state: $email")
         for {
           cookie <- Decoder.GoogleDecoder.initUserData(email=email, code=code)
         } yield Ok("google good").withSignedCookies(cookie)
-      case (Some(Seq(code)), _) => //  
+      case (Some(Seq(code)), _) => // here we got a code but no state => a pure login, no email <-> google mapping
         for {
-          Some(user_data) <- Decoder.GoogleDecoder.getUserData(None, code)
-          Some(dbResult) <- MongoAdapter.getUser(user_data)
-        } yield Ok(dbResult).withSignedCookies(Decoder.toCookie(user_data))
+          user_dataOpt <- Decoder.GoogleDecoder.getUserData(None, code)
+          user_data <- user_dataOpt.future(RestException("No user data found"))
+          dbResultOpt <- MongoAdapter.getUser(user_data)
+          dbResult <- dbResultOpt.future(RestException("No Database hit"))
+        } yield Ok("Google login success").withSignedCookies(Decoder.toCookie(user_data))
       case _ => 
         future { Ok(map.mkString) }
+    }
+    futRes.recover{ 
+      case RestException(message) => InternalServerError(message)
     }
   }
   
@@ -168,26 +185,34 @@ object Application extends PimpedController {
     def unapply(c: Cookie) = if(c.hasValidSign) Some(c.name -> c.value.unsign) else None
   }
   
-  def funnyCookies(r: Request[AnyContent]): Future[Boolean] = r.cookies.filter{ _.hasValidSign }.headOption match {
-    case Some(CookE("google", id)) => MongoAdapter.userExists(GoogleUser.withId(id))
-    case Some(CookE("fb", id)) => MongoAdapter.userExists(FbUser.withId(id))
-    case _ => future { false }
+  def funnyCookies(r: Request[AnyContent]): Future[Option[JsObject]] = r.cookies.filter{ _.hasValidSign }.headOption match {
+    case Some(CookE("google", id)) => MongoAdapter.getUser(GoogleUser.withId(id))
+    case Some(CookE("fb", id)) => MongoAdapter.getUser(FbUser.withId(id))
+    case _ => future { None }
   }
   
-  def SecureAction(fun: Request[AnyContent] => Future[SimpleResult]) = Action.async { r =>
-    val futureResult = for {
-      authenticated <- funnyCookies(r)
-      if authenticated
-      result <- fun(r)
-    } yield result
-    futureResult.recover{ 
-      case _: Throwable => Redirect("/konsult#/login")
+  val logout = Action{ 
+    def dc(name: String) = DiscardingCookie(name=name)
+    Redirect("/konsult#/login").discardingCookies(dc("fb"), dc("google"))
+  }
+  
+  def SecureActionWithUser(fun: Request[AnyContent] => JsObject => Future[SimpleResult]) = Action.async{ req =>
+    funnyCookies(req).flatMap{
+      case Some(user) => fun(req)(user)
+      case _ => future{ Redirect("/konsult#/login") }
     }
   }
   
-  val protectedContent = SecureAction{ r =>
+  def SecureAction(fun: Request[AnyContent] => Future[SimpleResult]) = Action.async { r =>
+    funnyCookies(r).flatMap{
+      case None => future{ Redirect("/konsult#/login") }
+      case _ => fun(r)
+    }
+  }
+  
+  val protectedContent = SecureActionWithUser{ r => user =>
     future {
-      Ok("satohe")
+      Ok(JsObj("our user is " -> user))
     }
   }
 }

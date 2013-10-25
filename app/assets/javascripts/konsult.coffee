@@ -59,10 +59,18 @@ FbController = ($scope, Restangular) ->
       state: $scope.email
       scope: "https://www.googleapis.com/auth/userinfo.profile"
     
-  
-  $scope.updateForm = -> initFb(); initGoogle()
+  initLinkedin = ->
+    init "linkedin", "disableLinkedin"
+    $scope.linkedin = serialize # request parameters
+      response_type: "code"
+      client_id: "or5btja04vjl"
+      state: $scope.email
+      redirect_uri: "http://skandal.dyndns.tv:9000/linkedinlogin"
+        
+  $scope.updateForm = -> initFb(); initGoogle(); initLinkedin()
   gotoUrl = (url) -> window.location.href = url 
-
+  
+  $scope.submitLinkedin = -> gotoUrl "https://www.linkedin.com/uas/oauth2/authorization?#{ $scope.linkedin }"
   $scope.submitFb = -> gotoUrl "https://graph.facebook.com/oauth/authorize?#{ $scope.facebook }"
   $scope.submitGoogle = -> gotoUrl "https://accounts.google.com/o/oauth2/auth?#{ $scope.google }"
   

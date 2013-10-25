@@ -10,7 +10,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq(
     // Add your project dependencies here,
-    "securesocial" %% "securesocial" % "master-SNAPSHOT"
+    // "securesocial" %% "securesocial" % "master-SNAPSHOT"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
