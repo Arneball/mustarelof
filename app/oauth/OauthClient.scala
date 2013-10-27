@@ -13,7 +13,7 @@ import play.api.Logger
 import play.api.libs.json._
 
 
-trait Decoder[T] {
+trait Decoder[T ] {
   type Req = Request[AnyContent]
   import Decoder._
   def cookieName: String
@@ -21,10 +21,10 @@ trait Decoder[T] {
   def getUserData(email: Option[String], code: String): Future[Option[T]]
   
   /** Looks in MongoDb for a user with T-specific credentials */
-  def validUser[T : UserFinder](t: T): Future[Boolean] = MongoAdapter.userExists(t)
+  def validUser(t: T)(implicit uf: UserFinder[T]): Future[Boolean] = MongoAdapter.userExists(t)
   
   /** Returns the cookie that is set when init is done */
-  def initUserData(email: String, code: String)(implicit uf: UserFinder[T]): Future[Cookie] = for {
+  def initUserData(email: String, code: String)(implicit uf: UserFinder[T], w: Writes[T]): Future[Cookie] = for {
     Some(user) <- getUserData(Some(email), code)
     lasterror <- MongoAdapter.addOauth(email, user)
     if lasterror.ok
@@ -101,17 +101,14 @@ object Decoder {
         JsonAccessTokenBody(access_token, expires) <- postWithQstring(url, params: _*)
         _ = Logger.debug(s"Got access key $access_token")
         userDataXmlStr <- getExternalWs("https://api.linkedin.com/v1/people/~", "oauth2_access_token" -> access_token)
-        userDataXml = userDataXmlStr.fromXml
-        fname = userDataXml("//first-name")
-        flane = userDataXml("//last-name")
-        _ = Logger.debug(s"Fname: $fname, Lname: $flane")
-      } yield Some(LinkedinUser.withId(access_token))
+      } yield for {
+        userDataXml <- userDataXmlStr.fromXml
+        fname = Option(userDataXml("//first-name"))
+        flane = Option(userDataXml("//last-name"))
+        url = userDataXml("//site-standard-profile-request/url")
+        user_id <- raw"id=(\d+)&".r.findFirstMatchIn(url).map{ _.group(1) }
+        _ = Logger.debug(s"Fname: $fname, Lname: $flane, whole: $userDataXmlStr, user_id: $user_id")
+      } yield LinkedinUser(user_id, fname, flane)
     }
   }
 }
-
-object LinkedinUser {
-  implicit val format = Json.format[LinkedinUser]
-  def withId(id: String) = LinkedinUser(id)
-}
-case class LinkedinUser(linkedin_id: String)

@@ -11,8 +11,8 @@ import utils._
 import play.api.libs.json.JsValue
 import reactivemongo.bson.BSONDocument
 import oauth.FbUser
-
 import reactivemongo.core.commands.LastError
+import play.api.libs.json.Writes
 object MongoAdapter {
   type FutureList = Future[List[JsValue]]
   private val connection: MongoConnection = {
@@ -42,14 +42,10 @@ object MongoAdapter {
    *  b) exists in mongodb
    */
   def userExists[T](userData: T)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
-//    val cacheKey = userFinder.toCacheKey(userData)
-//    val cacheOpt = play.api.cache.Cache.get(cacheKey)
-//    cacheOpt.map{ _ => future{ true } }.getOrElse {
       collection("users").find{ userFinder.toQuery(userData) }.one.map{ _.isDefined }
-//    }
   }
   
-  def addOauth[T : UserFinder](email: String, oauthInfo: T): Future[LastError] = {
+  def addOauth[T : UserFinder : Writes](email: String, oauthInfo: T): Future[LastError] = {
     val userFinder = implicitly[UserFinder[T]]
     val sel = JsObj("email" -> email)
     val update = userFinder.insert(oauthInfo)

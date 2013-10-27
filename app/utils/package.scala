@@ -80,8 +80,15 @@ package object utils {
   }
   
   implicit class AnyWrapper[T](val t: T) extends AnyVal {
+    /** Pipe op
+     *  {{{
+     *  def a(i: Int) = s"apa: ${i.toString}"
+     *  def b(s: String) = s.toUpperCase
+     *  
+     *  3 |> a |> b == "APA: 3"
+     *  }}}
+     */
     def |>[U](f: T => U) = f(t)
-//    def toCookie(implicit dec: Decoder[T]) = play.api.mvc.Cookie(name=dec.cookieName, value=dec.cookieValue(t))
   }
   
   lazy val secretKey = play.api.Play.current.configuration.getString("application.secret").get
@@ -106,8 +113,10 @@ package object utils {
     
     def unsign = str.take(str.lastIndexOf("."))
     
-    def fromXml = 
+    def fromXml = Try{
+      // nice java-oneliner
       DocumentBuilderFactory.newInstance.newDocumentBuilder.parse(new InputSource(new StringReader(str)))
+    }.toOption
     
   }
   
