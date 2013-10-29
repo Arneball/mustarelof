@@ -15,7 +15,6 @@ import play.api.libs.json._
 
 trait Decoder[T ] {
   type Req = Request[AnyContent]
-  import Decoder._
   def cookieName: String
   def cookieValue(t: T): String
   def getUserData(email: Option[String], code: String): Future[Option[T]]
@@ -28,12 +27,12 @@ trait Decoder[T ] {
     Some(user) <- getUserData(Some(email), code)
     lasterror <- MongoAdapter.addOauth(email, user)
     if lasterror.ok
-  } yield toCookie(user)(this)
+  } yield Decoder.toCookie(user)(this)
   
 }
 
 object Decoder {
-  implicit def toCookie[T](t: T)(implicit d: Decoder[T]): Cookie = Cookie(name=d.cookieName, value=d.cookieValue(t))
+  def toCookie[T](t: T)(implicit d: Decoder[T]): Cookie = Cookie(name=d.cookieName, value=d.cookieValue(t))
   
   implicit object FacebookDecoder extends Decoder[FbUser] {
     def cookieName = "fb"
@@ -104,11 +103,11 @@ object Decoder {
       } yield for {
         userDataXml <- userDataXmlStr.fromXml
         fname = Option(userDataXml("//first-name"))
-        flane = Option(userDataXml("//last-name"))
+        lname = Option(userDataXml("//last-name"))
         url = userDataXml("//site-standard-profile-request/url")
         user_id <- raw"id=(\d+)&".r.findFirstMatchIn(url).map{ _.group(1) }
-        _ = Logger.debug(s"Fname: $fname, Lname: $flane, whole: $userDataXmlStr, user_id: $user_id")
-      } yield LinkedinUser(user_id, fname, flane)
+        _ = Logger.debug(s"Fname: $fname, Lname: $lname, whole: $userDataXmlStr, user_id: $user_id")
+      } yield LinkedinUser(user_id, fname, lname)
     }
   }
 }

@@ -41,8 +41,8 @@ object MongoAdapter {
    *  a) exists in play cache ( maybe we will use redis instead)
    *  b) exists in mongodb
    */
-  def userExists[T](userData: T)(implicit userFinder: UserFinder[T]): Future[Boolean] = {
-      collection("users").find{ userFinder.toQuery(userData) }.one.map{ _.isDefined }
+  def userExists[T](userData: T)(implicit uf: UserFinder[T]): Future[Boolean] = {
+    collection("users").find{ uf.toQuery(userData) }.one.map{ _.isDefined }
   }
   
   def addOauth[T : UserFinder : Writes](email: String, oauthInfo: T): Future[LastError] = {
@@ -53,13 +53,14 @@ object MongoAdapter {
   }
   
   /** Check if email is mapped to any Oauth data
-   *  UserFinder[T] has method hasData(String) that returns a search query used if collection(...).find( _ )
+   *  UserFinder[T] has method hasData(String) that returns a search query used in collection("colname").find( _ )
    *  .one returns an Future[Option[JsObject]]
    *  .map { _.isDefined } returns Future[Boolean]
    */
-  def emailHas[T : UserFinder](email: String): Future[Boolean] = {
-    val uf = implicitly[UserFinder[T]]
-    collection("users").find{ uf.hasData(email) }.one.map { _.isDefined }
+  def emailHas[T](email: String)(implicit uf: UserFinder[T]): Future[Boolean] = {
+    val res = collection("users").find{ uf.hasData(email) }
+    val futOptJsObj = res.one
+    futOptJsObj.map { _.isDefined }
   }
   
   /** Collection "users" has uniquness on property "email", so an exception will be thrown if
@@ -67,9 +68,11 @@ object MongoAdapter {
    */
   def addDummy(email: String): Future[LastError] = collection("users").insert(JsObj("email" -> email))
   
-  
-  def getUser[T : UserFinder](t: T): Future[Option[JsObject]] = {
-    val query = implicitly[UserFinder[T]].toQuery(t)
+  /** Find an user given some provider specific properties
+   *  For example if we do getUser(FbUser) then it will find something in userdb where { facebook_id: FbUser.facebook_id }
+   */
+  def getUser[T](t: T)(implicit uf: UserFinder[T]): Future[Option[JsObject]] = {
+    val query = uf.toQuery(t)
     collection("users").find(query).one
   }
 }

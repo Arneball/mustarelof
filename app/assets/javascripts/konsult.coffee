@@ -4,7 +4,7 @@ serialize = (obj) ->
   str = []
   for p of obj when obj.hasOwnProperty p
     do (p) -> 
-      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
+      str.push "#{ encodeURIComponent(p) }=#{ encodeURIComponent(obj[p]) }"
    str.join "&"
 
 ourModule.filter 'serialize', () -> serialize

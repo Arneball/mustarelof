@@ -12,9 +12,9 @@ import play.api.libs.json.JsString
 import play.api.libs.json.Reads
 import play.api.libs.json.Writes
 
-case class FbUser(first_name: Option[String], last_name: Option[String], facebook_id: String)
+case class FbUser(facebook_first_name: Option[String], facebook_last_name: Option[String], facebook_id: String)
 object FbUser {
-  def withId(id: String) = new FbUser(first_name=None, last_name=None, facebook_id=id)
+  def withId(id: String) = new FbUser(facebook_first_name=None, facebook_last_name=None, facebook_id=id)
   
   /** Read from Json */
   implicit object reads extends EasyReads[FbUser] {
