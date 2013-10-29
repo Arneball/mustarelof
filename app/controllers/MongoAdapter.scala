@@ -45,10 +45,9 @@ object MongoAdapter {
     collection("users").find{ uf.toQuery(userData) }.one.map{ _.isDefined }
   }
   
-  def addOauth[T : UserFinder : Writes](email: String, oauthInfo: T): Future[LastError] = {
-    val userFinder = implicitly[UserFinder[T]]
+  def addOauth[T : Writes](email: String, oauthInfo: T)(implicit uf: UserFinder[T]): Future[LastError] = {
     val sel = JsObj("email" -> email)
-    val update = userFinder.insert(oauthInfo)
+    val update = uf.insert(oauthInfo)
     collection("users").update(selector=sel, update=update, upsert=false)
   }
   
