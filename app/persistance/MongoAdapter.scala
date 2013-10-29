@@ -1,18 +1,16 @@
-package controllers
-
-import play.api.Play.current
+package persistance
 import reactivemongo.api.MongoDriver
 import reactivemongo.api.MongoConnection
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json.JsObject
 import play.modules.reactivemongo.json.ImplicitBSONHandlers._
-import scala.concurrent.{ Future, future}
+import scala.concurrent.Future
 import utils._
 import play.api.libs.json.JsValue
-import reactivemongo.bson.BSONDocument
-import oauth.FbUser
 import reactivemongo.core.commands.LastError
 import play.api.libs.json.Writes
+import controllers.UserFinder
+
 object MongoAdapter {
   type FutureList = Future[List[JsValue]]
   private val connection: MongoConnection = {

@@ -11,6 +11,8 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     // "securesocial" %% "securesocial" % "master-SNAPSHOT"
+//    "com.typesafe" %% "play-plugins-redis" % "2.2.0",
+//    "com.typesafe.play" %% "play-cache" % "2.2.0"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
@@ -23,6 +25,7 @@ object ApplicationBuild extends Build {
       "com.yahoo.platform.yui" % "yuicompressor" % "2.4.7",
       "com.itextpdf" % "itextpdf" % "5.4.4",
       "net.databinder.dispatch" % "dispatch-core_2.10" % "0.11.0",
+      "net.debasishg" %% "redisreact" % "0.1",
       "com.google.code.geocoder-java" % "geocoder-java" % "0.15"),
     coffeescriptOptions := Seq("bare"),
     EclipseKeys.withSource := true,

@@ -15,6 +15,7 @@ import play.api.libs.json.JsNumber
 import play.api.libs.json.JsString
 import play.api.Logger
 import play.api.libs.json.JsArray
+import persistance.MongoAdapter
 
 object ReportsController extends PimpedController {
   def getReports(user_id: String) = Action.async{

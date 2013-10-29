@@ -28,8 +28,9 @@ import scala.collection.concurrent.TrieMap
 import play.api.libs.json.Reads
 import play.api.libs.json.JsValue
 import controllers2._
-//import net.sf.ehcache.Cache
 import play.api.libs.json.JsNull
+import persistance.RedisController
+import persistance.MongoAdapter
 object Application extends PimpedController {
   def index = Action{ r =>
     Ok(views.html.form()).withSignedCookies(Cookie("apa", "svin"))
@@ -132,11 +133,8 @@ object Application extends PimpedController {
      * @param code is the code given the oauth callback
      */
     def tryFetchUserData(code: String) = for {
-      user_dataOpt <- decoder.getUserData(None, code)
-      user_data <- user_dataOpt.future(RestException("No user data found"))
-      dbResultOpt <- MongoAdapter.getUser(user_data)
-      dbResult <- dbResultOpt.future(RestException("No Database hit"))
-    } yield Ok("Oauth login success").withSignedCookies(Decoder.toCookie(user_data))
+      c <- decoder.login(emailOpt.get, code)
+    } yield Ok("Login good").withSignedCookies(c)
     
     /** Tries to fill user with provider specific data
      *  @param res used to show success page
@@ -152,10 +150,10 @@ object Application extends PimpedController {
       // this is email <-> provider user data mapping
       case (Some(Seq(code)), _) => tryInitUserData(code)
       // default case
-      case _ => throw new RestException("Stop the world")
+      case _ => throw new RestException("Stop the world", Other)
     }
     futureRes.recover{
-      case RestException(message) => InternalServerError(message)
+      case RestException(message, cause) => InternalServerError(message)
     }
   }
   
@@ -184,15 +182,27 @@ object Application extends PimpedController {
     }
   }
   
+  /** Extracts the unsigned key and value from a cookie with valid signature
+   *  @returns None if cookie has no valid signature
+   */
   object CookE {
     def unapply(c: Cookie) = if(c.hasValidSign) Some(c.name -> c.value.unsign) else None
   }
   
-  def funnyCookies(r: Request[AnyContent]): Future[Option[JsObject]] = r.cookies.filter{ _.hasValidSign }.headOption match {
-    case Some(CookE("google", id)) => MongoAdapter.getUser(GoogleUser.withId(id))
-    case Some(CookE("fb", id)) => MongoAdapter.getUser(FbUser.withId(id))
-    case Some(CookE("linkedin", id)) => MongoAdapter.getUser(LinkedinUser.withId(id))
-    case _ => future { None }
+  /** Will check the cookies for access tokens wich in turn are saved in redis mapped to Provider specific id */
+  private def funnyCookies(r: Request[AnyContent]): Future[Option[JsObject]] = {
+    def exists[T](access_token: String)(implicit uf: UserFinder[T]) = for {
+      Some(userid) <- RedisController(access_token)
+      user = uf.fromKeyValue(userid)
+      jsOpt <- MongoAdapter.getUser(user)
+    } yield jsOpt
+    
+    r.cookies.filter{ _.hasValidSign }.headOption match {
+      case Some(CookE("google", access_token)) => exists[GoogleUser](access_token)
+      case Some(CookE("fb", access_token)) => exists[FbUser](access_token)
+      case Some(CookE("linkedin", access_token)) => exists[LinkedinUser](access_token)
+      case _ => future { None }
+    }
   }
   
   val logout = Action{ 

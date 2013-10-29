@@ -18,13 +18,11 @@ trait PimpedController extends Controller {
     val jsonvalueopt = req.body.asJson
     val jsonobjectopt = jsonvalueopt.flatMap{ _.asOpt[JsObject] }
     val fut = for {
-      obj <- jsonobjectopt.future(RestException("No parcelable json found"))
+      obj <- jsonobjectopt.future(RestException("No parcelable json found", NoJson))
       res <- fun(obj - "id")(req)
     } yield res
     fut.recover{
-      case RestException(mess) => BadRequest(mess)
+      case RestException(mess, _) => BadRequest(mess)
     }
   }
 }
-
-case class RestException(message: String) extends Exception

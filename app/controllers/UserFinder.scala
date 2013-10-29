@@ -16,6 +16,8 @@ trait UserFinder[T] {
   /** What value the id key should be mapped to */
   def keyValue(t: T): String
   
+  def fromKeyValue(id: String): T
+  
   /** Create a lookup query with T, we match on the key being equal to keyValue(t) */
   def toQuery(t: T): JsObject = JsObj(key -> keyValue(t))
   
@@ -34,13 +36,16 @@ object UserFinder {
   implicit object Fb extends UserFinder[FbUser] {
     def key = "facebook_id"
     def keyValue(u: FbUser) = u.facebook_id
+    def fromKeyValue(str: String) = FbUser.withId(str)
   }
   implicit object Google extends UserFinder[GoogleUser] {
     def key = "google_id"
     def keyValue(u: GoogleUser) = u.google_id
+    def fromKeyValue(str: String) = GoogleUser.withId(str)
   }
   implicit object Linkedin extends UserFinder[LinkedinUser] {
     def key = "linkedin_id"
     def keyValue(u: LinkedinUser) = u.linkedin_id
+    def fromKeyValue(str: String) = LinkedinUser.withId(str)
   }
 }
